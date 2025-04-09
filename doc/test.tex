@@ -1,0 +1,143 @@
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{russian}
+\setotherlanguage{english}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=[x86masm]Assembler,
+    basicstyle=\ttfamily\small,
+    commentstyle=\color{green},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    literate={а}{{\cyra}}1
+             {б}{{\cyrb}}1
+             {в}{{\cyrv}}1
+             {г}{{\cyrg}}1
+             {д}{{\cyrd}}1
+             {е}{{\cyre}}1
+             {ё}{{\cyryo}}1
+             {ж}{{\cyrzh}}1
+             {з}{{\cyrz}}1
+             {и}{{\cyri}}1
+             {й}{{\cyrishrt}}1
+             {к}{{\cyrk}}1
+             {л}{{\cyrl}}1
+             {м}{{\cyrm}}1
+             {н}{{\cyrn}}1
+             {о}{{\cyro}}1
+             {п}{{\cyrp}}1
+             {р}{{\cyrr}}1
+             {с}{{\cyrs}}1
+             {т}{{\cyrt}}1
+             {у}{{\cyru}}1
+             {ф}{{\cyrf}}1
+             {х}{{\cyrh}}1
+             {ц}{{\cyrc}}1
+             {ч}{{\cyrch}}1
+             {ш}{{\cyrsh}}1
+             {щ}{{\cyrshch}}1
+             {ъ}{{\cyrhrdsn}}1
+             {ы}{{\cyrery}}1
+             {ь}{{\cyrsftsn}}1
+             {э}{{\cyrerev}}1
+             {ю}{{\cyryu}}1
+             {я}{{\cyrya}}1
+             {А}{{\CYRA}}1
+             {Б}{{\CYRB}}1
+             {В}{{\CYRV}}1
+             {Г}{{\CYRG}}1
+             {Д}{{\CYRD}}1
+             {Е}{{\CYRE}}1
+             {Ё}{{\CYRYO}}1
+             {Ж}{{\CYRZH}}1
+             {З}{{\CYRZ}}1
+             {И}{{\CYRI}}1
+             {Й}{{\CYRISHRT}}1
+             {К}{{\CYRK}}1
+             {Л}{{\CYRL}}1
+             {М}{{\CYRM}}1
+             {Н}{{\CYRN}}1
+             {О}{{\CYRO}}1
+             {П}{{\CYRP}}1
+             {Р}{{\CYRR}}1
+             {С}{{\CYRS}}1
+             {Т}{{\CYRT}}1
+             {У}{{\CYRU}}1
+             {Ф}{{\CYRF}}1
+             {Х}{{\CYRH}}1
+             {Ц}{{\CYRC}}1
+             {Ч}{{\CYRCH}}1
+             {Ш}{{\CYRSH}}1
+             {Щ}{{\CYRSHCH}}1
+             {Ъ}{{\CYRHRDSN}}1
+             {Ы}{{\CYRERY}}1
+             {Ь}{{\CYRSFTSN}}1
+             {Э}{{\CYREREV}}1
+             {Ю}{{\CYRYU}}1
+             {Я}{{\CYRYA}}1
+             {~}{{ }}1
+}
+
+\begin{document}
+
+\section{Примеры инструкций C51}
+
+\begin{lstlisting}
+;~Инициализация~портов
+MOV P1, #0FFh    ;~Установка~всех~битов~порта~P1~в~1
+MOV P2, #00h     ;~Установка~всех~битов~порта~P2~в~0
+
+; Арифметические операции
+MOV A, #10       ; Загрузка числа 10 в аккумулятор
+ADD A, #20       ; Сложение: A = A + 20
+SUBB A, #5       ; Вычитание: A = A - 5
+
+; Логические операции
+MOV A, #0F0h     ; Загрузка значения в аккумулятор
+ANL A, #0Fh      ; Логическое И: A = A AND 0Fh
+ORL A, #0F0h     ; Логическое ИЛИ: A = A OR 0F0h
+XRL A, #0FFh     ; Логическое исключающее ИЛИ: A = A XOR FFh
+ 
+; Операции с битами
+SETB P1.0        ; Установка бита 0 порта P1 в 1
+CLR P1.1         ; Сброс бита 1 порта P1 в 0
+CPL P1.2         ; Инверсия бита 2 порта P1
+
+; Циклы и переходы
+LOOP:
+    DJNZ R0, LOOP    ; Уменьшить R0 и перейти, если не ноль
+    JZ NEXT          ; Переход, если аккумулятор равен нулю
+    JNZ NEXT         ; Переход, если аккумулятор не равен нулю
+NEXT:
+    NOP              ; Пустая операция
+
+; Работа с памятью
+MOV R0, #30h        ; Загрузка адреса в регистр R0
+MOV @R0, A          ; Сохранение аккумулятора по адресу в R0
+MOV A, @R0          ; Загрузка из памяти в аккумулятор
+
+; Подпрограммы
+LCALL DELAY         ; Вызов подпрограммы задержки
+RET                 ; Возврат из подпрограммы
+
+DELAY:
+    MOV R1, #255    ; Инициализация счетчика
+DELAY_LOOP:
+    DJNZ R1, DELAY_LOOP
+    RET
+\end{lstlisting}
+
+\end{document} 
