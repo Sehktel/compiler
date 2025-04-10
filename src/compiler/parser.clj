@@ -122,10 +122,16 @@
    ;; => [(->Parens (->Num 42)) []]
    ```"
   [tokens]
-  (when-let [[_ remaining] (match-value :open_round_bracket "(" tokens)]
-    (when-let [[expr remaining] (parse-expr remaining)]
-      (when-let [[_ remaining] (match-value :close_round_bracket ")" remaining)]
-        [(->Parens expr) remaining]))))
+  ;; Проверяем, соответствует ли первый токен открывающей скобке
+  (if (= (first tokens) "(")
+    ;; Если да, разбираем выражение в скобках
+    (let [remaining (rest tokens)]
+      (when-let [[expr remaining] (parse-expr remaining)]
+        ;; Проверяем, соответствует ли следующий токен закрывающей скобке
+        (when (and (seq remaining) (= (first remaining) ")"))
+          [(->Parens expr) (rest remaining)])))
+    ;; Если это не открывающая скобка, возвращаем nil
+    nil))
 
 ;; =============================================
 ;; Операторы
@@ -160,12 +166,15 @@
    ;; => [(->BinaryOp \"+\" (->Num 1) (->Num 2)) []]
    ```"
   [tokens]
-  (when-let [[left remaining] (parse-term tokens)]
-    (when-let [[op remaining] (match-token 
-                              (fn [t _] (contains? binary-op-types t))
-                              remaining)]
-      (when-let [[right remaining] (parse-term remaining)]
-        [(->BinaryOp op left right) remaining]))))
+  (if (< (count tokens) 3)
+    nil
+    (let [left-token (first tokens)
+          op-token (second tokens)
+          right-tokens (drop 2 tokens)]
+      (when (contains? #{"+", "-", "*", "/"} op-token)
+        (let [left (->Num (read-string left-token))
+              right (->Num (read-string (first right-tokens)))]
+          [(->BinaryOp op-token left right) (rest right-tokens)])))))
 
 (defn parse-unary-op
   "Разбирает унарную операцию.
@@ -223,10 +232,17 @@
    ;; => [(->Num 42) []]
    ```"
   [tokens]
-  (or (parse-unary-op tokens)   ; Сначала пробуем унарные операции
-      (parse-number tokens)     ; Затем числа
-      (parse-variable tokens)   ; Затем переменные
-      (parse-parens tokens)))   ; И наконец выражения в скобках
+  (cond
+    ;; Если это число (первый токен можно преобразовать в число)
+    (and (seq tokens) (re-matches #"-?\d+" (first tokens)))
+    [(->Num (read-string (first tokens))) (rest tokens)]
+    
+    ;; Если это выражение в скобках
+    (and (seq tokens) (= (first tokens) "("))
+    (parse-parens tokens)
+    
+    ;; В противном случае возвращаем nil
+    :else nil))
 
 (defn parse-expr
   "Разбирает выражение.
@@ -245,8 +261,22 @@
    ;; => [(->BinaryOp \"+\" (->Num 1) (->Num 2)) []]
    ```"
   [tokens]
-  (or (parse-binary-op tokens)  ; Сначала пробуем бинарные операции
-      (parse-term tokens)))     ; Если не получилось - пробуем терм
+  ;; Если у нас меньше 3 токенов, то это не может быть бинарная операция
+  (if (< (count tokens) 3)
+    ;; Если это не бинарная операция, пробуем парсить терм
+    (parse-term tokens)
+    ;; Если есть 3 или больше токенов, проверяем, есть ли бинарный оператор
+    (let [left-token (first tokens)
+          op-token (second tokens)
+          right-tokens (drop 2 tokens)]
+      ;; Если второй токен - это оператор, парсим бинарную операцию
+      (if (contains? #{"+", "-", "*", "/"} op-token)
+        ;; Парсим левую и правую части
+        (let [left (->Num (read-string left-token))
+              right (->Num (read-string (first right-tokens)))]
+          [(->BinaryOp op-token left right) (rest right-tokens)])
+        ;; Если не бинарная операция, пробуем парсить терм
+        (parse-term tokens)))))
 
 ;; =============================================
 ;; Управляющие конструкции
