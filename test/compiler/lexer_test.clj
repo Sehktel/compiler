@@ -1,6 +1,6 @@
 (ns compiler.lexer-test
   (:require [clojure.test :refer :all]
-            [lexer :refer [lex]]))
+            [compiler.lexer :refer [lex]]))
 
 ;; Тесты для ключевых слов
 (deftest keyword-tests
@@ -26,9 +26,13 @@
 ;; Тесты для операторов
 (deftest operator-tests
   (testing "Распознавание операторов"
-    (let [tokens (lex "+ - * / = ^= |= &=")]
-      (is (= (map :type tokens) [:operator :operator :operator :operator :operator :operator :operator :operator]))
-      (is (= (map :value tokens) ["+" "-" "*" "/" "=" "^=" "|=" "&="])))))
+    (let [tokens (lex "+ - * / % = == != ^= < > <= >= ++ -- && || ! & | ^ ~ << >>")]
+      (is (= (map :type tokens) [:operator :operator :operator :operator :operator :operator 
+      				 :operator :operator :operator :operator :operator :operator :operator 
+      				 :operator :operator :operator :operator :operator :operator 
+      				 :operator :operator :operator :operator :operator ]))
+      (is (= (map :value tokens) ["+" "-" "*" "/" "%" "=" "==" "!=" "^=" "<" ">" "<=" ">=" "++" "--" "&&" "||" "!" "&" "|" "^" "~" "<<" ">>"])))))
+
 
 ;; Тесты для разделителей
 (deftest separator-tests
@@ -46,12 +50,12 @@
 ;; Тест для обработчика прерывания
 (deftest interrupt-handler-test
   (testing "Распознавание обработчика прерывания"
-    (let [tokens (lex "interrupt void timer0_isr() {
+    (let [tokens (lex "void timer0_isr() interrupt 2 {
     P1 ^= 0x01;  // Инвертируем бит
 }")]
-      (is (= (map :type tokens) [:keyword :keyword :identifier :separator :separator :separator
+      (is (= (map :type tokens) [:keyword :identifier :separator :separator :keyword :number :separator
                                 :identifier :operator :number :separator :comment :separator]))
-      (is (= (map :value tokens) ["interrupt" "void" "timer0_isr" "(" ")" "{"
+      (is (= (map :value tokens) ["void" "timer0_isr" "(" ")" "interrupt" "2" "{"
                                  "P1" "^=" "0x01" ";" "// Инвертируем бит" "}"])))))
 
 ;; Тест для сложного выражения

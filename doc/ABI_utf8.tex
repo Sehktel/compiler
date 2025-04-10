@@ -1,0 +1,411 @@
+\documentclass[a4paper, 12pt]{article}
+
+% Поддержка русского языка
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+% Остальные пакеты
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+% Определение языка MC51
+\lstdefinelanguage{mc51}{
+    morekeywords={MOV, ADD, SUB, MUL, DIV, INC, DEC, DJNZ, CJNE, JC, JNC, JZ, JNZ, JB, JNB, JBC, ACALL, LCALL, RET, RETI, NOP, PUSH, POP, XCH, XCHD, SWAP, DA, CLR, SETB, CPL, ANL, ORL, XRL, RL, RLC, RR, RRC, JMP, SJMP, AJMP, LJMP, A, B, R0, R1, R2, R3, R4, R5, R6, R7, DPTR, PC, SP, PSW, ACC},
+    sensitive=true,
+    morecomment=[l]{;},
+    morestring=[b]",
+    morestring=[b]',
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    keywordstyle=\color{blue},
+    showstringspaces=false,
+    extendedchars=true,
+    inputencoding=utf8
+}
+
+% Настройка гиперссылок
+\hypersetup{
+    unicode=true,
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\title{ABI Document for AT89S4051}
+\author{Сухов А.А.}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{Введение}
+Данный документ описывает соглашение о бинарном интерфейсе (Application Binary Interface, ABI) для микроконтроллера AT89S4051. 
+
+\subsection{Цели документа}
+\begin{itemize}
+    \item Определить стандарт взаимодействия между компонентами программного обеспечения на уровне машинного кода
+    \item Обеспечить совместимость между кодом, написанным на разных языках программирования
+    \item Описать правила использования регистров и организации памяти
+    \item Стандартизировать механизмы вызова функций и передачи параметров
+\end{itemize}
+
+\subsection{Область применения}
+Документ предназначен для:
+\begin{itemize}
+    \item Разработчиков компиляторов
+    \item Программистов, работающих с ассемблером
+    \item Разработчиков системного программного обеспечения
+    \item Специалистов по оптимизации кода
+\end{itemize}
+
+\section{Общее описание архитектуры C51}
+\subsection{Основные характеристики AT89S4051}
+AT89S4051 - это 8-битный микроконтроллер, основанный на архитектуре MCS-51 (8051), имеющий следующие характеристики:
+
+\begin{itemize}
+    \item Тактовая частота: до 24 МГц
+    \item Напряжение питания: 4.0V - 5.5V
+    \item Температурный диапазон: -40°C до +85°C
+    \item Энергонезависимая память программ: 4KB Flash
+    \item Оперативная память: 128 байт
+    \item Количество циклов перепрограммирования: минимум 1000
+    \item Время хранения данных: 10 лет при 85°C
+\end{itemize}
+
+\subsection{Архитектурные особенности}
+\subsubsection{Процессорное ядро}
+\begin{itemize}
+    \item 8-битное АЛУ с поддержкой арифметических и логических операций
+    \item Аппаратное умножение и деление
+    \item Побитовая адресация
+    \item Поддержка булевых операций
+\end{itemize}
+
+\subsubsection{Система команд}
+\begin{itemize}
+    \item Всего 111 инструкций
+    \item Большинство инструкций выполняется за 1-2 машинных цикла
+    \item Длина инструкций: 1-3 байта
+    \item Типы адресации:
+    \begin{itemize}
+        \item Прямая
+        \item Косвенная
+        \item Регистровая
+        \item Непосредственная
+        \item Индексная
+    \end{itemize}
+\end{itemize}
+
+\subsection{Регистры}
+\subsubsection{Регистры общего назначения}
+\begin{itemize}
+    \item \textbf{R0-R7}: 8-битные регистры общего назначения
+    \begin{itemize}
+        \item Организованы в 4 банка по 8 регистров
+        \item Выбор активного банка через биты RS0 и RS1 регистра PSW
+        \item Могут использоваться для временного хранения данных
+    \end{itemize}
+    \item \textbf{ACC (A)}: Аккумулятор
+    \begin{itemize}
+        \item Основной регистр для арифметических и логических операций
+        \item Источник/приемник для операций с памятью
+        \item Используется для возврата 8-битных значений из функций
+    \end{itemize}
+    \item \textbf{B}: Вспомогательный регистр
+    \begin{itemize}
+        \item Второй операнд для операций умножения и деления
+        \item Может использоваться как регистр общего назначения
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Специальные регистры}
+\begin{itemize}
+    \item \textbf{DPTR}: 16-битный указатель данных
+    \begin{itemize}
+        \item Состоит из DPH (старший байт) и DPL (младший байт)
+        \item Используется для адресации внешней памяти
+        \item Применяется для табличных преобразований
+    \end{itemize}
+    \item \textbf{PC}: Счетчик команд
+    \begin{itemize}
+        \item 16-битный регистр
+        \item Указывает на следующую исполняемую инструкцию
+        \item Автоматически инкрементируется
+    \end{itemize}
+    \item \textbf{SP}: Указатель стека
+    \begin{itemize}
+        \item 8-битный регистр
+        \item Указывает на последний занятый байт в стеке
+        \item После сброса инициализируется значением 07h
+    \end{itemize}
+\end{itemize}
+
+\section{Формат бинарных файлов}
+\subsection{Формат Intel HEX}
+Intel HEX формат представляет собой текстовый формат для представления бинарных данных. Каждая строка (запись) имеет следующий формат:
+
+\begin{verbatim}
+:LLAAAATT[DD...]CC
+\end{verbatim}
+
+где:
+\begin{itemize}
+    \item \textbf{:} - маркер начала записи
+    \item \textbf{LL} - количество байт данных в записи (1 байт)
+    \item \textbf{AAAA} - адрес начала данных (2 байта)
+    \item \textbf{TT} - тип записи (1 байт)
+    \item \textbf{DD} - данные (LL байт)
+    \item \textbf{CC} - контрольная сумма (1 байт)
+\end{itemize}
+
+\subsection{Типы записей}
+\begin{itemize}
+    \item \textbf{00 - Data Record}
+    \begin{itemize}
+        \item Содержит данные для загрузки в память
+        \item Адрес указывает место загрузки
+        \item Наиболее часто используемый тип записи
+    \end{itemize}
+    \item \textbf{01 - End Of File Record}
+    \begin{itemize}
+        \item Обозначает конец файла
+        \item Не содержит данных (LL = 00)
+        \item Должна быть последней записью в файле
+    \end{itemize}
+    \item \textbf{02 - Extended Segment Address Record}
+    \begin{itemize}
+        \item Задает базовый адрес для последующих записей
+        \item Содержит 16-битный сегментный адрес
+        \item Используется для адресации более 64KB
+    \end{itemize}
+    \item \textbf{03 - Start Segment Address Record}
+    \begin{itemize}
+        \item Определяет начальное значение CS:IP
+        \item Используется для x86 архитектуры
+    \end{itemize}
+    \item \textbf{04 - Extended Linear Address Record}
+    \begin{itemize}
+        \item Задает старшие 16 бит 32-битного адреса
+        \item Используется для 32-битной адресации
+    \end{itemize}
+    \item \textbf{05 - Start Linear Address Record}
+    \begin{itemize}
+        \item Задает значение EIP
+        \item Используется в 32-битных системах
+    \end{itemize}
+\end{itemize}
+
+\subsection{Пример Intel HEX файла}
+\begin{verbatim}
+:10000000C3F000757A0A757B14C374147A007B0080D2
+:10001000FE120100E5827A007B01F0227867786A22A9
+:00000001FF
+\end{verbatim}
+
+\section{Соглашение о вызовах и передаче данных}
+\subsection{Передача параметров}
+\subsubsection{Через регистры}
+Первые три параметра передаются через регистры:
+\begin{itemize}
+    \item \textbf{R7}: Первый параметр
+    \item \textbf{R6}: Второй параметр
+    \item \textbf{R5}: Третий параметр
+\end{itemize}
+
+\subsubsection{Через стек}
+Параметры, начиная с четвертого, передаются через стек:
+\begin{itemize}
+    \item Параметры помещаются в стек в обратном порядке
+    \item Каждый параметр занимает минимум 1 байт
+    \item За освобождение стека отвечает вызывающая функция
+\end{itemize}
+
+\subsection{Возврат значений}
+\subsubsection{8-битные значения}
+\begin{itemize}
+    \item Возвращаются в аккумуляторе (A)
+    \item Флаги PSW отражают результат операции
+\end{itemize}
+
+\subsubsection{16-битные значения}
+\begin{itemize}
+    \item Возвращаются в DPTR
+    \item DPH содержит старший байт
+    \item DPL содержит младший байт
+\end{itemize}
+
+\subsubsection{32-битные значения}
+\begin{itemize}
+    \item Возвращаются через регистры R7:R6:R5:R4
+    \item R7 содержит самый старший байт
+    \item R4 содержит самый младший байт
+\end{itemize}
+
+\section{Память и ее организация}
+\subsection{Карта памяти}
+\subsubsection{Память программ}
+\begin{itemize}
+    \item Диапазон: 0x0000-0x0FFF
+    \item Размер: 4KB Flash
+    \item Только для чтения во время выполнения
+    \item Может быть запрограммирована через SPI
+\end{itemize}
+
+\subsubsection{Внутреннее ОЗУ}
+\begin{itemize}
+    \item Диапазон: 0x0000-0x007F
+    \item Размер: 128 байт
+    \item Организация:
+    \begin{itemize}
+        \item 0x00-0x1F: Банки регистров
+        \item 0x20-0x2F: Битовая область
+        \item 0x30-0x7F: Область общего назначения
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Специальные регистры (SFR)}
+\begin{itemize}
+    \item Диапазон: 0x0080-0x00FF
+    \item Включает управляющие регистры
+    \item Регистры портов ввода/вывода
+    \item Регистры таймеров и прерываний
+\end{itemize}
+
+\subsection{Организация стека}
+\subsubsection{Характеристики стека}
+\begin{itemize}
+    \item Расположен во внутреннем ОЗУ
+    \item Растет снизу вверх
+    \item Максимальный размер ограничен размером ОЗУ
+    \item SP указывает на последний занятый байт
+\end{itemize}
+
+\subsubsection{Операции со стеком}
+\begin{itemize}
+    \item \textbf{PUSH}:
+    \begin{itemize}
+        \item SP инкрементируется
+        \item Данные записываются по адресу [SP]
+    \end{itemize}
+    \item \textbf{POP}:
+    \begin{itemize}
+        \item Данные читаются из адреса [SP]
+        \item SP декрементируется
+    \end{itemize}
+    \item \textbf{CALL}:
+    \begin{itemize}
+        \item Адрес возврата (2 байта) помещается в стек
+        \item SP увеличивается на 2
+    \end{itemize}
+\end{itemize}
+
+\section{Примеры кода}
+\subsection{Базовые операции}
+\subsubsection{Сложение двух чисел}
+\begin{lstlisting}[language={mc51}]
+    MOV  A, #10      ; Загрузка первого числа
+    MOV  R7, #20     ; Загрузка второго числа
+    ADD  A, R7       ; Сложение
+    MOV  R0, A       ; Сохранение результата
+\end{lstlisting}
+
+\subsubsection{Умножение}
+\begin{lstlisting}[language={mc51}]
+    MOV  A, #5       ; Первый множитель
+    MOV  B, #3       ; Второй множитель
+    MUL  AB          ; Умножение
+    ; Результат в A (младший байт)
+    ; и B (старший байт)
+\end{lstlisting}
+
+\subsection{Работа с функциями}
+\subsubsection{Пример вызова функции}
+\begin{lstlisting}[language={mc51}]
+Main:
+    MOV  R7, #10     ; Первый параметр
+    MOV  R6, #20     ; Второй параметр
+    CALL Sum         ; Вызов функции
+    MOV  R5, A       ; Сохранение результата
+    RET
+
+Sum:
+    MOV  A, R7       ; Загрузка первого параметра
+    ADD  A, R6       ; Сложение с вторым параметром
+    RET              ; Возврат результата в A
+\end{lstlisting}
+
+\subsubsection{Функция с локальными переменными}
+\begin{lstlisting}[language={mc51}]
+Function:
+    ; Сохранение используемых регистров
+    PUSH ACC
+    PUSH B
+    
+    ; Работа с локальными данными
+    MOV  R0, #0      ; Локальная переменная
+    
+    ; Восстановление регистров
+    POP  B
+    POP  ACC
+    RET
+\end{lstlisting}
+
+\subsection{Работа со стеком}
+\begin{lstlisting}[language={mc51}]
+    ; Сохранение контекста
+    PUSH ACC         ; Сохранение аккумулятора
+    PUSH PSW         ; Сохранение флагов
+    PUSH DPH         ; Сохранение DPTR
+    PUSH DPL
+    
+    ; Код функции
+    
+    ; Восстановление контекста
+    POP  DPL         ; Восстановление DPTR
+    POP  DPH
+    POP  PSW         ; Восстановление флагов
+    POP  ACC         ; Восстановление аккумулятора
+\end{lstlisting}
+
+\section{Заключение}
+\subsection{Основные положения}
+Данный ABI документ определяет:
+\begin{itemize}
+    \item Стандартные соглашения для компиляции и компоновки программ
+    \item Правила взаимодействия между модулями на уровне машинного кода
+    \item Механизмы вызова функций и передачи параметров
+    \item Организацию памяти и использование регистров
+\end{itemize}
+
+\subsection{Рекомендации по использованию}
+\begin{itemize}
+    \item Строго следовать соглашениям о вызовах
+    \item Учитывать ограничения архитектуры
+    \item Оптимизировать использование регистров
+    \item Правильно организовывать работу со стеком
+\end{itemize}
+
+\subsection{Совместимость}
+Соблюдение описанных соглашений обеспечивает:
+\begin{itemize}
+    \item Совместимость между различными компиляторами
+    \item Возможность использования библиотек
+    \item Надежность межмодульного взаимодействия
+    \item Предсказуемое поведение программ
+\end{itemize}
+
+\end{document}

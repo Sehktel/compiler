@@ -1,18 +1,67 @@
-(ns lexer
+(ns compiler.lexer
   (:require [clojure.string :as str]))
 
 ;; Определение типов токенов
 (def token-types
-  {:keyword ["void" "char" "int" "unsigned" "signed" "interrupt"]
-   :operator ["+" "-" "*" "/" "%" "=" "==" "!=" "<" ">" "<=" ">=" "++" "--" "&&" "||" "!" "&" "|" "^" "~" "<<" ">>"]
-   :separator ["(" ")" "{" "}" "[" "]" "," ";" ":"]
+  {:void_keyword ["void"]
+   :interrupt_keyword ["interrupt"]
+   :type_keyword ["char" "int"]
+   :signed_keyword ["signed"]
+   :unsigned_keyword ["unsigned"]
+   :const_keyword ["const"]
+   :typedef_keyword ["typedef"]
+   :goto_keyword ["goto"]
+   :if_keyword ["if"]
+   :else_keyword ["else"]
+   :for_keyword ["for"]
+   :while_keyword ["while"]
+   :do_keyword ["do"]
+   :return_keyword ["return"]
+   :break_keyword ["break"]
+   :continue_keyword ["continue"]
+
+   :open_round_bracket ["("]
+   :close_round_bracket [")"]
+   :open_curly_bracket ["{"]
+   :close_curly_bracket ["}"]
+   :open_square_bracket ["["]
+   :close_square_bracket ["]"]
+   :comma [","]
+   :semicolon [";"]
+   :colon [":"]
+   
+   :plus ["+"]
+   :minus ["-"]
+   :asterisk ["*"]
+   :slash ["/"]
+   :percent ["%"]
+   :equal ["="]
+   :equal_equal ["=="]
+   :not_equal ["!="]
+   :xor_equal ["^="]
+   :less ["<"]
+   :less_equal ["<="]
+   :greater [">"]
+   :greater_equal [">="]
+   :inc ["++"]
+   :dec ["--"]
+   :logical_and ["&&"]
+   :logical_or ["||"]
+   :logical_not ["!"]
+   :bit_and ["&"]
+   :bit_or ["|"]
+   :bit_xor ["^"]
+   :bit_not ["~"]
+   :shift_left ["<<"]
+   :shift_right [">>"]
+   
    :identifier #"[a-zA-Z_][a-zA-Z0-9_]*"
    :number #"0[xX][0-9a-fA-F]+|\d+"
    :string #"\"[^\"]*\""
    :comment #"//.*|/\*[\s\S]*?\*/"})
 
 ;; Функция для проверки, является ли строка ключевым словом
-(defn keyword? [s]
+(defn is-keyword? [s]
   (some #(= s %) (:keyword token-types)))
 
 ;; Функция для проверки, является ли строка оператором
@@ -26,7 +75,7 @@
 ;; Функция для определения типа токена
 (defn get-token-type [token]
   (cond
-    (keyword? token) :keyword
+    (is-keyword? token) :keyword
     (operator? token) :operator
     (separator? token) :separator
     (re-matches (:identifier token-types) token) :identifier
@@ -81,4 +130,19 @@
     (doseq [token tokens]
       (println (format "Тип: %-10s Значение: %s" 
                       (name (:type token)) 
-                      (:value token)))))) 
+                      (:value token))))))
+
+;; Функция для токенизации входной строки
+(defn tokenize [input]
+  (let [tokens (->> input
+                   (re-seq #"-?\d+|[()+\-*/]")
+                   (remove empty?)
+                   vec)]
+    (mapv (fn [token]
+            (cond
+              (re-matches #"-?\d+" token) [:number token]
+              (contains? #{"+" "-" "*" "/"} token) [:operator token]
+              (= "(" token) [:open-paren token]
+              (= ")" token) [:close-paren token]
+              :else [:unknown token]))
+          tokens))) 
