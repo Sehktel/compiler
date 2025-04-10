@@ -1,6 +1,15 @@
 (ns compiler.lexer
   (:require [clojure.string :as str]))
 
+;; Предварительное объявление всех функций
+(declare is-keyword?)
+(declare operator?)
+(declare separator?)
+(declare get-token-type)
+(declare lex)
+(declare test-lexer)
+(declare tokenize)
+
 ;; =============================================
 ;; Определение типов токенов
 ;; =============================================

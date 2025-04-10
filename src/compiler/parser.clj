@@ -4,9 +4,13 @@
                                  ->If ->While ->For ->Return ->UnaryOp ->Block]]
             [compiler.lexer :refer [tokenize]]))
 
-;; Объявления функций для разрешения циклических зависимостей
-(declare parse-expr)
+;; Предварительное объявление всех функций
+(declare parse-if)
+(declare parse-unary-op)
 (declare parse-term)
+(declare parse-expr)
+(declare parse-statement)
+(declare parse)
 
 ;; =============================================
 ;; Вспомогательные функции для PEG парсера
@@ -188,6 +192,17 @@
 ;; Термы и выражения
 ;; =============================================
 
+(def parse-if
+  "Разбирает условный оператор if."
+  (fn [tokens]
+    (when-let [[_ remaining] (match-value :if_keyword "if" tokens)]
+      (when-let [[condition remaining] (parse-expr remaining)]
+        (when-let [[then remaining] (parse-statement remaining)]
+          (let [[else remaining] 
+                (when-let [[_ remaining] (match-value :else_keyword "else" remaining)]
+                  (parse-statement remaining))]
+            [(->If condition then else) remaining]))))))
+
 (defn parse-term
   "Разбирает терм (базовый элемент выражения).
    Порядок правил определяет приоритет разбора.
@@ -237,37 +252,37 @@
 ;; Управляющие конструкции
 ;; =============================================
 
-(defn parse-if
-  "Разбирает условный оператор if.
+;; (defn parse-if
+;;   "Разбирает условный оператор if.
    
-   ## Параметры
-   - `tokens` - последовательность токенов
+;;    ## Параметры
+;;    - `tokens` - последовательность токенов
    
-   ## Возвращает
-   Вектор `[(->If условие then else) оставшиеся_токены]` или `nil`.
+;;    ## Возвращает
+;;    Вектор `[(->If условие then else) оставшиеся_токены]` или `nil`.
    
-   ## Пример
-   ```clojure
-   (parse-if [[:if_keyword \"if\"] [:open_round_bracket \"(\"] 
-              [:identifier \"x\"] [:greater \">\"] [:number \"0\"] 
-              [:close_round_bracket \")\"] [:open_curly_bracket \"{\"] 
-              [:return_keyword \"return\"] [:number \"1\"] [:semicolon \";\"] 
-              [:close_curly_bracket \"}\"] [:else_keyword \"else\"] 
-              [:open_curly_bracket \"{\"] [:return_keyword \"return\"] 
-              [:number \"0\"] [:semicolon \";\"] [:close_curly_bracket \"}\"]])
-   ;; => [(->If (->BinaryOp \">\" (->Variable \"x\") (->Num 0))
-   ;;           (->Block [(->Return (->Num 1))])
-   ;;           (->Block [(->Return (->Num 0))]))
-   ;;      []]
-   ```"
-  [tokens]
-  (when-let [[_ remaining] (match-value :if_keyword "if" tokens)]
-    (when-let [[condition remaining] (parse-expr remaining)]
-      (when-let [[then remaining] (parse-statement remaining)]
-        (let [[else remaining] 
-              (when-let [[_ remaining] (match-value :else_keyword "else" remaining)]
-                (parse-statement remaining))]
-          [(->If condition then else) remaining])))))
+;;    ## Пример
+;;    ```clojure
+;;    (parse-if [[:if_keyword \"if\"] [:open_round_bracket \"(\"] 
+;;               [:identifier \"x\"] [:greater \">\"] [:number \"0\"] 
+;;               [:close_round_bracket \")\"] [:open_curly_bracket \"{\"] 
+;;               [:return_keyword \"return\"] [:number \"1\"] [:semicolon \";\"] 
+;;               [:close_curly_bracket \"}\"] [:else_keyword \"else\"] 
+;;               [:open_curly_bracket \"{\"] [:return_keyword \"return\"] 
+;;               [:number \"0\"] [:semicolon \";\"] [:close_curly_bracket \"}\"]])
+;;    ;; => [(->If (->BinaryOp \">\" (->Variable \"x\") (->Num 0))
+;;    ;;           (->Block [(->Return (->Num 1))])
+;;    ;;           (->Block [(->Return (->Num 0))]))
+;;    ;;      []]
+;;    ```"
+;;   [tokens]
+;;   (when-let [[_ remaining] (match-value :if_keyword "if" tokens)]
+;;     (when-let [[condition remaining] (parse-expr remaining)]
+;;       (when-let [[then remaining] (parse-statement remaining)]
+;;         (let [[else remaining] 
+;;               (when-let [[_ remaining] (match-value :else_keyword "else" remaining)]
+;;                 (parse-statement remaining))]
+;;           [(->If condition then else) remaining])))))
 
 (defn parse-while
   "Разбирает цикл while.
@@ -438,12 +453,12 @@
    ;; => [(->If (->Num 1) (->Block []) nil) []]
    ```"
   [tokens]
-  (or (parse-if tokens)         ; Сначала условные операторы
-      (parse-while tokens)      ; Затем циклы
-      (parse-for tokens)        ; Затем циклы for
-      (parse-return tokens)     ; Затем return
-      (parse-block tokens)      ; Затем блоки
-      (parse-expr tokens)))     ; И наконец выражения
+  (or (parse-if tokens)
+      (parse-while tokens)
+      (parse-for tokens)
+      (parse-return tokens)
+      (parse-block tokens)
+      (parse-expr tokens)))
 
 ;; =============================================
 ;; Основная функция парсинга

@@ -1,6 +1,9 @@
 (ns compiler.ast
   (:gen-class))
 
+;; Предварительное объявление всех функций
+(declare print-ast)
+
 ;; Определение типов узлов AST (Abstract Syntax Tree)
 ;; Num - узел для числовых литералов
 (defrecord Num [value])
@@ -19,6 +22,9 @@
 
 ;; Variable - узел для переменных
 (defrecord Variable [name])
+
+;; UnaryOp - узел для унарных операций (-, ! и т.д.)
+(defrecord UnaryOp [op expr])
 
 ;; FunctionCall - узел для вызова функций
 (defrecord FunctionCall [name args])

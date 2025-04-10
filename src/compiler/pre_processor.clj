@@ -1,4 +1,4 @@
-(ns pre-processor
+(ns compiler.pre_processor
   (:require [clojure.string :as str]))
 
 ;; Определение состояний препроцессора
