@@ -1,7 +1,34 @@
 (ns compiler.ast-test
   (:require [clojure.test :refer :all]
-            [compiler.core :refer :all]
-            [compiler.ast :refer :all]))
+            [clojure.java.io :as io]
+            [compiler.parser :refer [parse]]
+            [compiler.ast :refer [print-ast]]))
+
+(defn read-test-files
+  "Читает все тестовые файлы из директории ./test/c4ast/"
+  []
+  (let [dir (io/file "test/c4ast")
+        files (filter #(.endsWith (.getName %) ".c") 
+                     (file-seq dir))]
+    (sort-by #(.getName %) files)))
+
+(defn test-ast-construction
+  "Тестирует построение AST для каждого тестового файла"
+  []
+  (println "\n=== Тестирование построения AST ===")
+  (doseq [file (read-test-files)]
+    (println "\nФайл:" (.getName file))
+    (println "Содержимое:")
+    (println (slurp file))
+    (println "\nAST:")
+    (let [ast (parse (slurp file))]
+      (if ast
+        (print-ast ast)
+        (println "Ошибка при построении AST")))))
+
+;; Запуск тестов
+(defn -main []
+  (test-ast-construction))
 
 (deftest ast-test
   (testing "AST test Sample."
