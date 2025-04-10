@@ -35,6 +35,9 @@
 ;; Function - узел для определения функции
 (defrecord Function [name params body])
 
+;; For - узел для цикла for
+(defrecord For [init condition update body])
+
 ;; ;; interrupt - узел для оператора interrupt
 ;; (defrecord Interrupt [])
 
@@ -91,6 +94,14 @@
       (do
         (println spaces "Function:" (:name ast))
         (println spaces "  Params:" (:params ast))
+        (print-ast (:body ast) (+ indent 1)))
+      
+      (instance? For ast)
+      (do
+        (println spaces "For:")
+        (print-ast (:init ast) (+ indent 1))
+        (print-ast (:condition ast) (+ indent 1))
+        (print-ast (:update ast) (+ indent 1))
         (print-ast (:body ast) (+ indent 1)))
       
       :else
