@@ -124,14 +124,14 @@
    (operator? \"xyz\") ;; => false
    ```"
   [s]
-  (some #(some (partial = s) %) 
-        (vals (select-keys token-types 
-                          [:plus :minus :asterisk :slash :percent 
-                           :equal :equal_equal :not_equal :xor_equal 
-                           :less :less_equal :greater :greater_equal 
-                           :inc :dec :logical_and :logical_or :logical_not 
-                           :bit_and :bit_or :bit_xor :bit_not 
-                           :shift_left :shift_right]))))
+  (contains? #{"+" "-" "*" "/" "%" 
+              "=" "==" "!=" 
+              "<" "<=" ">" ">=" 
+              "++" "--" "&&" "||" "!" 
+              "&" "|" "^" "~" 
+              "<<" ">>"
+              "+=" "-=" "*=" "/=" "%="
+              "&=" "|=" "^=" "<<=" ">>="} s))
 
 (defn separator?
   "Проверяет, является ли строка разделителем языка C.
@@ -278,37 +278,39 @@
                       (:value token))))))
 
 (defn tokenize
-  "Упрощенная функция токенизации для базовых арифметических выражений.
+  "Расширенная функция токенизации для кода на языке C.
    
    ## Параметры
-   - `input` - строка с арифметическим выражением
+   - `input` - строка с кодом на языке C
    
    ## Возвращает
-   Вектор токенов в формате `[тип значение]`, где тип может быть:
-   - `:number` - числовой литерал
-   - `:operator` - оператор (+, -, *, /)
-   - `:open-paren` - открывающая скобка
-   - `:close-paren` - закрывающая скобка
-   - `:unknown` - неизвестный токен
+   Вектор токенов в формате `[тип значение]`
    
    ## Пример
    ```clojure
-   (tokenize \"1 + 2 * (3 - 4)\")
-   ;; => [[:number \"1\"] [:operator \"+\"] [:number \"2\"]
-   ;;     [:operator \"*\"]
-   ;;     [:open-paren \"(\"] [:number \"3\"] [:operator \"-\"]
-   ;;     [:number \"4\"] [:close-paren \")\"]]
+   (tokenize \"int x = 1 + 2;\")
+   ;; => [[:keyword \"int\"] [:identifier \"x\"] [:operator \"=\"] 
+   ;;     [:number \"1\"] [:operator \"+\"] [:number \"2\"] [:separator \";\"]]
    ```"
   [input]
-  (let [tokens (->> input
-                   (re-seq #"-?\d+|[()+\-*/]")
-                   (remove empty?)
-                   vec)]
+  (let [tokens (lex input)]
     (mapv (fn [token]
-            (cond
-              (re-matches #"-?\d+" token) [:number token]
-              (contains? #{"+" "-" "*" "/"} token) [:operator token]
-              (= "(" token) [:open-paren token]
-              (= ")" token) [:close-paren token]
-              :else [:unknown token]))
+            (let [type (:type token)
+                  value (:value token)]
+              (cond
+                (= type :keyword) [:keyword value]
+                (= type :operator) [:operator value]
+                (= type :separator) (cond
+                                     (= value "(") [:open-paren value]
+                                     (= value ")") [:close-paren value]
+                                     (= value "{") [:open-brace value]
+                                     (= value "}") [:close-brace value]
+                                     (= value "[") [:open-bracket value]
+                                     (= value "]") [:close-bracket value]
+                                     :else [:separator value])
+                (= type :identifier) [:identifier value]
+                (= type :number) [:number value]
+                (= type :string) [:string value]
+                (= type :comment) [:comment value]
+                :else [:unknown value])))
           tokens))) 

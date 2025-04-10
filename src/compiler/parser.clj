@@ -4,6 +4,9 @@
                                  ->If ->While ->For ->Return ->UnaryOp ->Block]]
             [compiler.lexer :refer [tokenize]]))
 
+;; Флаг для включения/отключения режима отладки
+(def ^:dynamic *debug-mode* true)
+
 ;; Предварительное объявление всех функций
 (declare parse-if)
 (declare parse-unary-op)
@@ -11,6 +14,11 @@
 (declare parse-expr)
 (declare parse-statement)
 (declare parse)
+
+;; Функция для логирования отладочной информации
+(defn debug-log [& args]
+  (when *debug-mode*
+    (apply println args)))
 
 ;; =============================================
 ;; Вспомогательные функции для PEG парсера
@@ -34,7 +42,11 @@
   [pred tokens]
   (when-let [[token-type token-value] (first tokens)]
     (when (pred token-type token-value)
-      [token-value (rest tokens)])))
+      (debug-log "Токен соответствует:" token-type token-value)
+      [token-value (rest tokens)])
+    (do
+      (debug-log "Токен не соответствует предикату:" (first tokens))
+      nil)))
 
 (defn match-type
   "Проверяет тип токена.
@@ -210,37 +222,35 @@
             [(->If condition then else) remaining]))))))
 
 (defn parse-term
-  "Разбирает терм (базовый элемент выражения).
-   Порядок правил определяет приоритет разбора.
+  "Разбирает терм (число, переменную, выражение в скобках, и т.д.).
    
    ## Параметры
    - `tokens` - последовательность токенов
    
    ## Возвращает
-   Результат первого успешного разбора из:
-   - унарная операция
-   - число
-   - переменная
-   - выражение в скобках
-   
-   ## Пример
-   ```clojure
-   (parse-term [[:number \"42\"]])
-   ;; => [(->Num 42) []]
-   ```"
+   Вектор `[терм оставшиеся_токены]` или `nil` в случае ошибки."
   [tokens]
-  (cond
-    ;; Если токенов нет, возвращаем nil
-    (empty? tokens) nil
-    
-    ;; Если это число
-    (= (first (first tokens)) :number) (parse-number tokens)
-    
-    ;; Если это открывающая скобка
-    (= (first (first tokens)) :open-paren) (parse-parens tokens)
-    
-    ;; В противном случае возвращаем nil
-    :else nil))
+  (debug-log "Парсинг терма. Токены:" tokens)
+  (or
+   ;; Сначала пробуем разобрать число
+   (when-let [res (parse-number tokens)]
+     (debug-log "Успешный парсинг числа:" (first res))
+     res)
+   
+   ;; Затем пробуем разобрать переменную
+   (when-let [res (parse-variable tokens)]
+     (debug-log "Успешный парсинг переменной:" (first res))
+     res)
+   
+   ;; Затем пробуем разобрать выражение в скобках
+   (when-let [res (parse-parens tokens)]
+     (debug-log "Успешный парсинг выражения в скобках:" (first res))
+     res)
+   
+   ;; Если ни один из вариантов не сработал, возвращаем nil
+   (do
+     (debug-log "Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.")
+     nil)))
 
 ;; Определяем приоритеты операторов
 (def operator-precedence
@@ -250,51 +260,34 @@
    "-" 1})
 
 (defn parse-expr
-  "Разбирает выражение с учетом приоритета операторов.
+  "Разбирает выражение (терм или бинарная операция).
    
    ## Параметры
    - `tokens` - последовательность токенов
    
    ## Возвращает
-   Вектор `[AST-узел оставшиеся_токены]` или `nil`.
-   
-   ## Пример
-   ```clojure
-   (parse-expr [[:number \"1\"] [:operator \"+\"] [:number \"2\"]])
-   ;; => [(->BinaryOp \"+\" (->Num 1) (->Num 2)) []]
-   ```"
+   Вектор `[выражение оставшиеся_токены]` или `nil` в случае ошибки."
   [tokens]
-  (defn parse-expr-with-precedence [tokens min-precedence]
-    (when-let [[left-expr remaining] (parse-term tokens)]
-      (loop [left left-expr
-             tokens-remaining remaining]
-        (if (and (seq tokens-remaining) 
-                 (= (first (first tokens-remaining)) :operator))
-          (let [op (second (first tokens-remaining))
-                precedence (get operator-precedence op 0)]
-            (if (< precedence min-precedence)
-              [left tokens-remaining]  ;; Возвращаем левый операнд и оставшиеся токены
-              (let [op-token (first tokens-remaining)
-                    op-remaining (rest tokens-remaining)]
-                (when-let [[right next-remaining] (parse-term op-remaining)]
-                  ;; Смотрим, есть ли еще токены, и если есть, обрабатываем их с учетом приоритета
-                  (if (and (seq next-remaining) 
-                           (= (first (first next-remaining)) :operator))
-                    (let [next-op (second (first next-remaining))
-                          next-precedence (get operator-precedence next-op 0)]
-                      (if (> next-precedence precedence)
-                        ;; Если следующий оператор имеет больший приоритет, сначала обрабатываем его
-                        (when-let [[right-expr remaining-after-right] 
-                                  (parse-expr-with-precedence next-remaining next-precedence)]
-                          (recur (->BinaryOp op left right-expr) remaining-after-right))
-                        ;; Иначе продолжаем слева направо
-                        (recur (->BinaryOp op left right) next-remaining)))
-                    ;; Если больше нет токенов, создаем бинарный узел с текущими операндами
-                    (recur (->BinaryOp op left right) next-remaining))))))
-          [left tokens-remaining]))))
-    
-  ;; Начинаем разбор с минимального приоритета
-  (parse-expr-with-precedence tokens 0))
+  (debug-log "Парсинг выражения. Токены:" tokens)
+  (if (empty? tokens)
+    (do
+      (debug-log "Ошибка: Пустой список токенов при парсинге выражения")
+      nil)
+    (or
+     ;; Сначала пробуем разобрать бинарную операцию
+     (when-let [res (parse-binary-op tokens)]
+       (debug-log "Успешный парсинг бинарной операции:" (first res))
+       res)
+     
+     ;; Затем пробуем разобрать просто терм
+     (when-let [res (parse-term tokens)]
+       (debug-log "Успешный парсинг терма как выражения:" (first res))
+       res)
+     
+     ;; Если ни один из вариантов не сработал, возвращаем nil
+     (do
+       (debug-log "Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.")
+       nil))))
 
 ;; =============================================
 ;; Управляющие конструкции
@@ -591,27 +584,34 @@
       nil)))
 
 (defn parse
-  "Разбирает входную строку в AST.
+  "Основная функция парсинга. Анализирует входные данные и строит AST.
    
    ## Параметры
-   - `input` - строка с исходным кодом
+   - `input` - входная строка кода на C
    
    ## Возвращает
-   AST или `nil`, если разбор не удался.
-   
-   ## Пример
-   ```clojure
-   (parse \"if (x > 0) { return 1; } else { return 0; }\")
-   ;; => (->If (->BinaryOp \">\" (->Variable \"x\") (->Num 0))
-   ;;          (->Block [(->Return (->Num 1))])
-   ;;          (->Block [(->Return (->Num 0))]))
-   ```"
+   AST в виде вложенных структур данных или `nil` в случае ошибки."
   [input]
-  (let [tokens (tokenize input)]
-    (if (= (count tokens) 1)  ;; Если у нас только один токен
-      (let [token (first tokens)]
-        (if (= (first token) :number)
-          (->Num (read-string (second token)))  ;; Для простого числа
-          nil))  ;; Для других одиночных токенов
-      (parse-complex-expr tokens))))
+  (debug-log "Начало парсинга входной строки")
+  (try
+    (let [tokens (tokenize input)]
+      (debug-log "Токены после лексического анализа:" tokens)
+      (if (empty? tokens)
+        (do 
+          (debug-log "Ошибка: Пустой список токенов")
+          nil)
+        (let [[ast remaining] (parse-expr tokens)]
+          (debug-log "Парсинг выражения завершен. Оставшиеся токены:" remaining)
+          (if (empty? remaining)
+            (do
+              (debug-log "Парсинг успешно завершен")
+              ast)
+            (do
+              (debug-log "Ошибка: Остались необработанные токены:" remaining)
+              nil)))))
+    (catch Exception e
+      (debug-log "Исключение при парсинге:" (.getMessage e))
+      (debug-log "Стек вызовов:")
+      (.printStackTrace e)
+      nil)))
     
