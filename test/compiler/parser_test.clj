@@ -6,29 +6,29 @@
 
 (deftest tokenize-test
   (testing "Токенизация базовых выражений"
-    (is (= ["1" "+" "2"] (tokenize "1+2")))
-    (is (= ["(" "1" "+" "2" ")" "*" "3"] (tokenize "(1+2)*3")))
-    (is (= ["-42" "/" "2"] (tokenize "-42/2")))))
+    (is (= [[:number "1"] [:operator "+"] [:number "2"]] (tokenize "1+2")))
+    (is (= [[:open-paren "("] [:number "1"] [:operator "+"] [:number "2"] [:close-paren ")"] [:operator "*"] [:number "3"]] (tokenize "(1+2)*3")))
+    (is (= [[:number "-42"] [:operator "/"] [:number "2"]] (tokenize "-42/2")))))
 
 (deftest parse-number-test
   (testing "Парсинг числовых литералов"
-    (is (= [(->Num 42) []] (parse-number ["42"])))
-    (is (= [(->Num -42) []] (parse-number ["-42"])))
-    (is (nil? (parse-number ["abc"])))))
+    (is (= [(->Num 42) []] (parse-number [[:number "42"]])))
+    (is (= [(->Num -42) []] (parse-number [[:number "-42"]])))
+    (is (nil? (parse-number [[:identifier "abc"]])))))
 
 (deftest parse-parens-test
   (testing "Парсинг выражений в скобках"
-    (is (= [(->Parens (->Num 42)) []] (parse-parens ["(" "42" ")"])))
+    (is (= [(->Parens (->Num 42)) []] (parse-parens [[:open-paren "("] [:number "42"] [:close-paren ")"]])))
     (is (= [(->Parens (->BinaryOp "+" (->Num 1) (->Num 2))) []]
-           (parse-parens ["(" "1" "+" "2" ")"])))
-    (is (nil? (parse-parens ["(" "42"])))))
+           (parse-parens [[:open-paren "("] [:number "1"] [:operator "+"] [:number "2"] [:close-paren ")"]])))
+    (is (nil? (parse-parens [[:open-paren "("] [:number "42"]])))))
 
 (deftest parse-binary-op-test
   (testing "Парсинг бинарных операций"
     (is (= [(->BinaryOp "+" (->Num 1) (->Num 2)) []]
-           (parse-binary-op ["1" "+" "2"])))
+           (parse-binary-op [[:number "1"] [:operator "+"] [:number "2"]])))
     (is (= [(->BinaryOp "*" (->Num 3) (->Num 4)) []]
-           (parse-binary-op ["3" "*" "4"])))))
+           (parse-binary-op [[:number "3"] [:operator "*"] [:number "4"]])))))
 
 (deftest parse-test
   (testing "Парсинг полных выражений"
@@ -42,14 +42,23 @@
 
 (deftest operator-precedence-test
   (testing "Проверка приоритета операторов"
-    (is (= (->BinaryOp "+" 
-                      (->Num 1)
-                      (->BinaryOp "*" (->Num 2) (->Num 3)))
-           (parse "1+2*3")))
-    (is (= (->BinaryOp "*"
-                      (->BinaryOp "+" (->Num 1) (->Num 2))
-                      (->Num 3))
-           (parse "(1+2)*3")))))
+    ;; Проверка, что выражение 1+2*3 правильно парсится с учетом приоритета операторов
+    (let [ast (parse "1+2*3")]
+      (println "AST для 1+2*3:" ast)
+      (is (= (->BinaryOp "+" (->Num 1) (->BinaryOp "*" (->Num 2) (->Num 3))) ast)))
+    
+    ;; Проверка, что выражение (1+2)*3 правильно парсится с учетом скобок
+    (let [ast (parse "(1+2)*3")]
+      (println "AST для (1+2)*3:" ast)
+      (is (instance? compiler.ast.BinaryOp ast))
+      (is (= "*" (:op ast)))
+      (is (instance? compiler.ast.Parens (:left ast)))
+      (let [parens-expr (:expr (:left ast))]
+        (is (instance? compiler.ast.BinaryOp parens-expr))
+        (is (= "+" (:op parens-expr)))
+        (is (= (->Num 1) (:left parens-expr)))
+        (is (= (->Num 2) (:right parens-expr))))
+      (is (= (->Num 3) (:right ast))))))
 
 (deftest error-handling-test
   (testing "Обработка ошибок парсинга"

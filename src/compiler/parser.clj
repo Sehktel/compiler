@@ -86,8 +86,8 @@
    ;; => [(->Num 42) [[:plus \"+\"]]]
    ```"
   [tokens]
-  (when-let [[value remaining] (match-type :number tokens)]
-    [(->Num (read-string value)) remaining]))
+  (when (and (seq tokens) (= (first (first tokens)) :number))
+    [(->Num (read-string (second (first tokens)))) (rest tokens)]))
 
 (defn parse-variable
   "Разбирает идентификатор переменной.
@@ -118,20 +118,18 @@
    
    ## Пример
    ```clojure
-   (parse-parens [[:open_round_bracket \"(\"] [:number \"42\"] [:close_round_bracket \")\"]])
+   (parse-parens [[:open-paren \"(\"] [:number \"42\"] [:close-paren \")\"]])
    ;; => [(->Parens (->Num 42)) []]
    ```"
   [tokens]
   ;; Проверяем, соответствует ли первый токен открывающей скобке
-  (if (= (first tokens) "(")
+  (when (and (seq tokens) (= (first (first tokens)) :open-paren))
     ;; Если да, разбираем выражение в скобках
     (let [remaining (rest tokens)]
       (when-let [[expr remaining] (parse-expr remaining)]
         ;; Проверяем, соответствует ли следующий токен закрывающей скобке
-        (when (and (seq remaining) (= (first remaining) ")"))
-          [(->Parens expr) (rest remaining)])))
-    ;; Если это не открывающая скобка, возвращаем nil
-    nil))
+        (when (and (seq remaining) (= (first (first remaining)) :close-paren))
+          [(->Parens expr) (rest remaining)])))))
 
 ;; =============================================
 ;; Операторы
@@ -162,19 +160,18 @@
    
    ## Пример
    ```clojure
-   (parse-binary-op [[:number \"1\"] [:plus \"+\"] [:number \"2\"]])
+   (parse-binary-op [[:number \"1\"] [:operator \"+\"] [:number \"2\"]])
    ;; => [(->BinaryOp \"+\" (->Num 1) (->Num 2)) []]
    ```"
   [tokens]
   (if (< (count tokens) 3)
     nil
-    (let [left-token (first tokens)
-          op-token (second tokens)
-          right-tokens (drop 2 tokens)]
-      (when (contains? #{"+", "-", "*", "/"} op-token)
-        (let [left (->Num (read-string left-token))
-              right (->Num (read-string (first right-tokens)))]
-          [(->BinaryOp op-token left right) (rest right-tokens)])))))
+    (when-let [[left remaining] (parse-term tokens)]
+      (when (and (seq remaining) (= (first (first remaining)) :operator))
+        (let [op (second (first remaining))
+              remaining2 (rest remaining)]
+          (when-let [[right remaining3] (parse-term remaining2)]
+            [(->BinaryOp op left right) remaining3]))))))
 
 (defn parse-unary-op
   "Разбирает унарную операцию.
@@ -233,50 +230,71 @@
    ```"
   [tokens]
   (cond
-    ;; Если это число (первый токен можно преобразовать в число)
-    (and (seq tokens) (re-matches #"-?\d+" (first tokens)))
-    [(->Num (read-string (first tokens))) (rest tokens)]
+    ;; Если токенов нет, возвращаем nil
+    (empty? tokens) nil
     
-    ;; Если это выражение в скобках
-    (and (seq tokens) (= (first tokens) "("))
-    (parse-parens tokens)
+    ;; Если это число
+    (= (first (first tokens)) :number) (parse-number tokens)
+    
+    ;; Если это открывающая скобка
+    (= (first (first tokens)) :open-paren) (parse-parens tokens)
     
     ;; В противном случае возвращаем nil
     :else nil))
 
+;; Определяем приоритеты операторов
+(def operator-precedence
+  {"*" 2
+   "/" 2
+   "+" 1
+   "-" 1})
+
 (defn parse-expr
-  "Разбирает выражение.
+  "Разбирает выражение с учетом приоритета операторов.
    
    ## Параметры
    - `tokens` - последовательность токенов
    
    ## Возвращает
-   Результат первого успешного разбора из:
-   - бинарная операция
-   - терм
+   Вектор `[AST-узел оставшиеся_токены]` или `nil`.
    
    ## Пример
    ```clojure
-   (parse-expr [[:number \"1\"] [:plus \"+\"] [:number \"2\"]])
+   (parse-expr [[:number \"1\"] [:operator \"+\"] [:number \"2\"]])
    ;; => [(->BinaryOp \"+\" (->Num 1) (->Num 2)) []]
    ```"
   [tokens]
-  ;; Если у нас меньше 3 токенов, то это не может быть бинарная операция
-  (if (< (count tokens) 3)
-    ;; Если это не бинарная операция, пробуем парсить терм
-    (parse-term tokens)
-    ;; Если есть 3 или больше токенов, проверяем, есть ли бинарный оператор
-    (let [left-token (first tokens)
-          op-token (second tokens)
-          right-tokens (drop 2 tokens)]
-      ;; Если второй токен - это оператор, парсим бинарную операцию
-      (if (contains? #{"+", "-", "*", "/"} op-token)
-        ;; Парсим левую и правую части
-        (let [left (->Num (read-string left-token))
-              right (->Num (read-string (first right-tokens)))]
-          [(->BinaryOp op-token left right) (rest right-tokens)])
-        ;; Если не бинарная операция, пробуем парсить терм
-        (parse-term tokens)))))
+  (defn parse-expr-with-precedence [tokens min-precedence]
+    (when-let [[left-expr remaining] (parse-term tokens)]
+      (loop [left left-expr
+             tokens-remaining remaining]
+        (if (and (seq tokens-remaining) 
+                 (= (first (first tokens-remaining)) :operator))
+          (let [op (second (first tokens-remaining))
+                precedence (get operator-precedence op 0)]
+            (if (< precedence min-precedence)
+              [left tokens-remaining]  ;; Возвращаем левый операнд и оставшиеся токены
+              (let [op-token (first tokens-remaining)
+                    op-remaining (rest tokens-remaining)]
+                (when-let [[right next-remaining] (parse-term op-remaining)]
+                  ;; Смотрим, есть ли еще токены, и если есть, обрабатываем их с учетом приоритета
+                  (if (and (seq next-remaining) 
+                           (= (first (first next-remaining)) :operator))
+                    (let [next-op (second (first next-remaining))
+                          next-precedence (get operator-precedence next-op 0)]
+                      (if (> next-precedence precedence)
+                        ;; Если следующий оператор имеет больший приоритет, сначала обрабатываем его
+                        (when-let [[right-expr remaining-after-right] 
+                                  (parse-expr-with-precedence next-remaining next-precedence)]
+                          (recur (->BinaryOp op left right-expr) remaining-after-right))
+                        ;; Иначе продолжаем слева направо
+                        (recur (->BinaryOp op left right) next-remaining)))
+                    ;; Если больше нет токенов, создаем бинарный узел с текущими операндами
+                    (recur (->BinaryOp op left right) next-remaining))))))
+          [left tokens-remaining]))))
+    
+  ;; Начинаем разбор с минимального приоритета
+  (parse-expr-with-precedence tokens 0))
 
 ;; =============================================
 ;; Управляющие конструкции
@@ -494,6 +512,84 @@
 ;; Основная функция парсинга
 ;; =============================================
 
+(defn parse-complex-expr
+  "Разбирает сложное выражение с несколькими операторами.
+   
+   ## Параметры
+   - `tokens` - последовательность токенов
+   
+   ## Возвращает
+   AST или `nil`, если разбор не удался."
+  [tokens]
+  (try
+    (loop [remaining-tokens tokens
+           expr-stack []
+           op-stack []]
+      (if (empty? remaining-tokens)
+        ;; Если токены закончились, применяем оставшиеся операторы
+        (if (empty? op-stack)
+          ;; Если нет операторов, возвращаем последнее выражение
+          (if (empty? expr-stack)
+            nil  ;; Если стек выражений пуст, возвращаем nil
+            (first expr-stack))
+          ;; Иначе применяем операторы в порядке приоритета
+          (if (or (empty? expr-stack) (< (count expr-stack) 2))
+            nil  ;; Недостаточно операндов для оператора
+            (let [op (peek op-stack)
+                  right (peek expr-stack)
+                  expr-stack' (pop expr-stack)
+                  left (peek expr-stack')
+                  expr-stack'' (pop expr-stack')
+                  new-expr (->BinaryOp op left right)]
+              (recur remaining-tokens (conj expr-stack'' new-expr) (pop op-stack)))))
+        
+        ;; Обработка текущего токена
+        (let [token (first remaining-tokens)]
+          (cond
+            ;; Число
+            (= (first token) :number)
+            (let [value (read-string (second token))]
+              (recur (rest remaining-tokens) (conj expr-stack (->Num value)) op-stack))
+            
+            ;; Открывающая скобка
+            (= (first token) :open-paren)
+            (let [end-paren-idx (.indexOf (mapv first remaining-tokens) :close-paren)]
+              (if (neg? end-paren-idx)
+                ;; Если нет закрывающей скобки, возвращаем nil
+                nil
+                (let [subexpr-tokens (subvec remaining-tokens 1 end-paren-idx)
+                      subexpr (parse-complex-expr subexpr-tokens)]
+                  (if (nil? subexpr)
+                    nil
+                    (recur (subvec remaining-tokens (inc end-paren-idx))
+                           (conj expr-stack (->Parens subexpr))
+                           op-stack)))))
+            
+            ;; Оператор
+            (= (first token) :operator)
+            (let [new-op (second token)
+                  new-precedence (get operator-precedence new-op 0)]
+              ;; Если есть оператор с большим приоритетом в стеке, применяем его
+              (if (and (not (empty? op-stack))
+                       (>= (get operator-precedence (peek op-stack) 0) new-precedence))
+                (if (< (count expr-stack) 2)
+                  nil  ;; Недостаточно операндов для оператора
+                  (let [op (peek op-stack)
+                        right (peek expr-stack)
+                        expr-stack' (pop expr-stack)
+                        left (peek expr-stack')
+                        expr-stack'' (pop expr-stack')
+                        new-expr (->BinaryOp op left right)]
+                    (recur remaining-tokens (conj expr-stack'' new-expr) (pop op-stack))))
+                ;; Иначе добавляем оператор в стек
+                (recur (rest remaining-tokens) expr-stack (conj op-stack new-op))))
+            
+            ;; Если токен не распознан, возвращаем nil
+            :else nil))))
+    ;; Обработка любых исключений
+    (catch Exception e
+      nil)))
+
 (defn parse
   "Разбирает входную строку в AST.
    
@@ -511,8 +607,11 @@
    ;;          (->Block [(->Return (->Num 0))]))
    ```"
   [input]
-  (let [tokens (tokenize input)
-        [expr remaining] (parse-statement tokens)]
-    (when (empty? remaining)  ; Проверяем, что разобрали все токены
-      expr)))
+  (let [tokens (tokenize input)]
+    (if (= (count tokens) 1)  ;; Если у нас только один токен
+      (let [token (first tokens)]
+        (if (= (first token) :number)
+          (->Num (read-string (second token)))  ;; Для простого числа
+          nil))  ;; Для других одиночных токенов
+      (parse-complex-expr tokens))))
     
