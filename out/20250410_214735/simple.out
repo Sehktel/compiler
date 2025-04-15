@@ -1,0 +1,27 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\simple.c
+Содержимое:
+int main() {
+    int x = 1;
+    return x;
+} 
+
+Токены:
+[[:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword return] [:identifier x] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword return] [:identifier x] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword return] [:identifier x] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword return] [:identifier x] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:keyword int]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword return] [:identifier x] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:keyword int]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

@@ -1,0 +1,63 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\header_usage_test.c
+Содержимое:
+/* Тестовый файл для проверки использования заголовочного файла */
+
+// #include "custom_header.h"
+
+// Реализация функций из заголовочного файла
+int add(char a, char b) {
+    return a + b;
+}
+
+int subtract(char a, char b) {
+    return a - b;
+}
+
+int product(char a, char b) {
+    return a * b;
+}
+
+void main() {
+    
+    // Использование функций
+    int sum = add(P1, P3);
+    int diff = subtract(P1, P3);
+    int product = multiply(P1, P3);
+    
+} 
+
+Токены:
+[[:comment /* Тестовый файл для проверки использования заголовочного файла */] [:comment // #include "custom_header.h"
+] [:comment // Реализация функций из заголовочного файла
+] [:keyword int] [:identifier add] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier subtract] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator -] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier product] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator *] [:identifier b] [:separator ;] [:close-brace }] [:keyword void] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Использование функций
+] [:keyword int] [:identifier sum] [:operator =] [:identifier add] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier diff] [:operator =] [:identifier subtract] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier product] [:operator =] [:identifier multiply] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment /* Тестовый файл для проверки использования заголовочного файла */] [:comment // #include "custom_header.h"
+] [:comment // Реализация функций из заголовочного файла
+] [:keyword int] [:identifier add] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier subtract] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator -] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier product] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator *] [:identifier b] [:separator ;] [:close-brace }] [:keyword void] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Использование функций
+] [:keyword int] [:identifier sum] [:operator =] [:identifier add] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier diff] [:operator =] [:identifier subtract] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier product] [:operator =] [:identifier multiply] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment /* Тестовый файл для проверки использования заголовочного файла */] [:comment // #include "custom_header.h"
+] [:comment // Реализация функций из заголовочного файла
+] [:keyword int] [:identifier add] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier subtract] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator -] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier product] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator *] [:identifier b] [:separator ;] [:close-brace }] [:keyword void] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Использование функций
+] [:keyword int] [:identifier sum] [:operator =] [:identifier add] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier diff] [:operator =] [:identifier subtract] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier product] [:operator =] [:identifier multiply] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки использования заголовочного файла */] [:comment // #include "custom_header.h"
+] [:comment // Реализация функций из заголовочного файла
+] [:keyword int] [:identifier add] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier subtract] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator -] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier product] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator *] [:identifier b] [:separator ;] [:close-brace }] [:keyword void] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Использование функций
+] [:keyword int] [:identifier sum] [:operator =] [:identifier add] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier diff] [:operator =] [:identifier subtract] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier product] [:operator =] [:identifier multiply] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки использования заголовочного файла */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки использования заголовочного файла */] [:comment // #include "custom_header.h"
+] [:comment // Реализация функций из заголовочного файла
+] [:keyword int] [:identifier add] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier subtract] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator -] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier product] [:open-paren (] [:keyword char] [:identifier a] [:separator ,] [:keyword char] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator *] [:identifier b] [:separator ;] [:close-brace }] [:keyword void] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Использование функций
+] [:keyword int] [:identifier sum] [:operator =] [:identifier add] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier diff] [:operator =] [:identifier subtract] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:keyword int] [:identifier product] [:operator =] [:identifier multiply] [:open-paren (] [:identifier P1] [:separator ,] [:identifier P3] [:close-paren )] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки использования заголовочного файла */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

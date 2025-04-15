@@ -5,6 +5,45 @@
             [clojure.java.io :as io])
   (:gen-class))
 
+;; Установка кодировки UTF-8 для вывода
+(alter-var-root #'*out* (constantly (-> System/out
+                                      (java.io.OutputStreamWriter. "UTF-8")
+                                      java.io.BufferedWriter.
+                                      java.io.PrintWriter.)))
+
+(def debug-levels #{:info :warn :error})
+
+(def debug-flags (atom {:verbose false
+                       :trace false}))
+
+(defn parse-args
+  "Разбор аргументов командной строки
+   Поддерживает флаги:
+   --debug       : включает подробный вывод
+   --trace      : включает трассировку"
+  [args]
+  (loop [remaining-args args]
+    (when (seq remaining-args)
+      (case (first remaining-args)
+        "--debug" (do (swap! debug-flags assoc :verbose true)
+                     (recur (rest remaining-args)))
+        "--trace" (do (swap! debug-flags assoc :trace true)
+                     (recur (rest remaining-args)))
+        ;; Продолжаем обработку других аргументов
+        (recur (rest remaining-args))))))
+
+(defn debug-print
+  "Вывод отладочной информации"
+  [msg]
+  (when (:verbose @debug-flags)
+    (println "[DEBUG]:" msg)))
+
+(defn trace-print
+  "Вывод информации трассировки"
+  [msg]
+  (when (:trace @debug-flags)
+    (println "[TRACE]:" msg)))
+
 (defn read-test-files
   "Читает все тестовые файлы из директории ./test/c4ast/"
   []
@@ -20,7 +59,7 @@
     (do
       (println "\nТокенизация файла:" filename)
       (println "Содержимое:")
-      (let [content (slurp filename)
+      (let [content (slurp filename :encoding "UTF-8")
             tokens (tokenize content)]
         (println content)
         (println "\nТокены:")
@@ -35,9 +74,9 @@
   (doseq [file (read-test-files)]
     (println "\nФайл:" (.getName file))
     (println "Содержимое:")
-    (println (slurp file))
+    (println (slurp file :encoding "UTF-8"))
     (println "\nAST:")
-    (let [content (slurp file)
+    (let [content (slurp file :encoding "UTF-8")
           tokens (tokenize content)]
       (println "Токены:" tokens)
       (try
@@ -58,7 +97,7 @@
     (do
       (println "\nАнализ файла:" filename)
       (println "Содержимое:")
-      (let [content (slurp filename)
+      (let [content (slurp filename :encoding "UTF-8")
             tokens (tokenize content)]
         (println content)
         (println "\nТокены:")
@@ -76,16 +115,32 @@
             (.printStackTrace e)))))
     (println "Файл не найден:" filename)))
 
+(defn structured-debug [level category msg]
+  (when (:verbose @debug-flags)
+    (println (format "[%s][%s]: %s" 
+                    (name level) 
+                    (name category) 
+                    msg))))
+
 (defn -main
-  "Основная функция приложения. Запускает тесты AST или анализирует указанный файл."
+  "Точка входа в программу"
   [& args]
-  (if (empty? args)
-    (do
-      (println "Запуск тестирования AST деревьев...")
-      (test-ast-construction))
-    (let [cmd (first args)]
-      (cond
-        (= cmd "tokenize") (if (second args)
-                              (tokenize-file (second args))
+  ;; Сначала обрабатываем флаги отладки
+  (parse-args args)
+  (debug-print "Запуск компилятора в режиме отладки")
+  (trace-print "Начало трассировки выполнения")
+  
+  ;; Фильтруем аргументы, убирая флаги отладки
+  (let [real-args (remove #(or (= % "--debug") 
+                              (= % "--trace")) 
+                         args)]
+    (if (empty? real-args)
+      (do
+        (println "Запуск тестирования AST деревьев...")
+        (test-ast-construction))
+      (let [cmd (first real-args)]
+        (cond
+          (= cmd "tokenize") (if (second real-args)
+                              (tokenize-file (second real-args))
                               (println "Укажите файл для токенизации"))
-        :else (analyze-file cmd)))))
+          :else (analyze-file cmd))))))

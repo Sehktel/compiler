@@ -2,7 +2,10 @@
   (:require [clojure.string :as str]
             [compiler.ast :refer [->Num ->BinaryOp ->Parens ->Variable ->FunctionCall 
                                  ->If ->While ->For ->Return ->UnaryOp ->Block]]
-            [compiler.lexer :refer [tokenize]]))
+            [compiler.lexer :refer [tokenize]])
+            
+            (require '[compiler.ast :as ast] :reload)
+(require '[compiler.parser :as parser] :reload))
 
 ;; Флаг для включения/отключения режима отладки
 (def ^:dynamic *debug-mode* true)

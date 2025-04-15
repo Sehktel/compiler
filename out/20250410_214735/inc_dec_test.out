@@ -1,0 +1,102 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\inc_dec_test.c
+Содержимое:
+/* Тестовый файл для проверки операций инкремента, декремента и скобок */
+
+int main() {
+    int a = 5;
+    int b = 10;
+    int c = 0;
+    
+    // Проверка префиксного и постфиксного инкремента
+    c = ++a;    // a = 6, c = 6
+    c = b++;    // b = 11, c = 10
+    
+    // Проверка префиксного и постфиксного декремента
+    c = --a;    // a = 5, c = 5
+    c = b--;    // b = 10, c = 11
+    
+    // Проверка работы со скобками
+    c = (a + b) * 2;    // c = 30
+    c = a + (b * 2);    // c = 25
+    
+    // Сложные выражения со скобками
+    c = ((a++) + (--b)) * (a - b);    // c = 15 * (-4) = -60
+    
+    return c;
+} 
+
+Токены:
+[[:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier a] [:operator =] [:number 5] [:separator ;] [:keyword int] [:identifier b] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier c] [:operator =] [:number 0] [:separator ;] [:comment // Проверка префиксного и постфиксного инкремента
+] [:identifier c] [:operator =] [:operator ++] [:identifier a] [:separator ;] [:comment // a = 6, c = 6
+] [:identifier c] [:operator =] [:identifier b] [:operator ++] [:separator ;] [:comment // b = 11, c = 10
+] [:comment // Проверка префиксного и постфиксного декремента
+] [:identifier c] [:operator =] [:operator --] [:identifier a] [:separator ;] [:comment // a = 5, c = 5
+] [:identifier c] [:operator =] [:identifier b] [:operator --] [:separator ;] [:comment // b = 10, c = 11
+] [:comment // Проверка работы со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:identifier a] [:operator +] [:identifier b] [:close-paren )] [:operator *] [:number 2] [:separator ;] [:comment // c = 30
+] [:identifier c] [:operator =] [:identifier a] [:operator +] [:open-paren (] [:identifier b] [:operator *] [:number 2] [:close-paren )] [:separator ;] [:comment // c = 25
+] [:comment // Сложные выражения со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:open-paren (] [:identifier a] [:operator ++] [:close-paren )] [:operator +] [:open-paren (] [:operator --] [:identifier b] [:close-paren )] [:close-paren )] [:operator *] [:open-paren (] [:identifier a] [:operator -] [:identifier b] [:close-paren )] [:separator ;] [:comment // c = 15 * (-4) = -60
+] [:keyword return] [:identifier c] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier a] [:operator =] [:number 5] [:separator ;] [:keyword int] [:identifier b] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier c] [:operator =] [:number 0] [:separator ;] [:comment // Проверка префиксного и постфиксного инкремента
+] [:identifier c] [:operator =] [:operator ++] [:identifier a] [:separator ;] [:comment // a = 6, c = 6
+] [:identifier c] [:operator =] [:identifier b] [:operator ++] [:separator ;] [:comment // b = 11, c = 10
+] [:comment // Проверка префиксного и постфиксного декремента
+] [:identifier c] [:operator =] [:operator --] [:identifier a] [:separator ;] [:comment // a = 5, c = 5
+] [:identifier c] [:operator =] [:identifier b] [:operator --] [:separator ;] [:comment // b = 10, c = 11
+] [:comment // Проверка работы со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:identifier a] [:operator +] [:identifier b] [:close-paren )] [:operator *] [:number 2] [:separator ;] [:comment // c = 30
+] [:identifier c] [:operator =] [:identifier a] [:operator +] [:open-paren (] [:identifier b] [:operator *] [:number 2] [:close-paren )] [:separator ;] [:comment // c = 25
+] [:comment // Сложные выражения со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:open-paren (] [:identifier a] [:operator ++] [:close-paren )] [:operator +] [:open-paren (] [:operator --] [:identifier b] [:close-paren )] [:close-paren )] [:operator *] [:open-paren (] [:identifier a] [:operator -] [:identifier b] [:close-paren )] [:separator ;] [:comment // c = 15 * (-4) = -60
+] [:keyword return] [:identifier c] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier a] [:operator =] [:number 5] [:separator ;] [:keyword int] [:identifier b] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier c] [:operator =] [:number 0] [:separator ;] [:comment // Проверка префиксного и постфиксного инкремента
+] [:identifier c] [:operator =] [:operator ++] [:identifier a] [:separator ;] [:comment // a = 6, c = 6
+] [:identifier c] [:operator =] [:identifier b] [:operator ++] [:separator ;] [:comment // b = 11, c = 10
+] [:comment // Проверка префиксного и постфиксного декремента
+] [:identifier c] [:operator =] [:operator --] [:identifier a] [:separator ;] [:comment // a = 5, c = 5
+] [:identifier c] [:operator =] [:identifier b] [:operator --] [:separator ;] [:comment // b = 10, c = 11
+] [:comment // Проверка работы со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:identifier a] [:operator +] [:identifier b] [:close-paren )] [:operator *] [:number 2] [:separator ;] [:comment // c = 30
+] [:identifier c] [:operator =] [:identifier a] [:operator +] [:open-paren (] [:identifier b] [:operator *] [:number 2] [:close-paren )] [:separator ;] [:comment // c = 25
+] [:comment // Сложные выражения со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:open-paren (] [:identifier a] [:operator ++] [:close-paren )] [:operator +] [:open-paren (] [:operator --] [:identifier b] [:close-paren )] [:close-paren )] [:operator *] [:open-paren (] [:identifier a] [:operator -] [:identifier b] [:close-paren )] [:separator ;] [:comment // c = 15 * (-4) = -60
+] [:keyword return] [:identifier c] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier a] [:operator =] [:number 5] [:separator ;] [:keyword int] [:identifier b] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier c] [:operator =] [:number 0] [:separator ;] [:comment // Проверка префиксного и постфиксного инкремента
+] [:identifier c] [:operator =] [:operator ++] [:identifier a] [:separator ;] [:comment // a = 6, c = 6
+] [:identifier c] [:operator =] [:identifier b] [:operator ++] [:separator ;] [:comment // b = 11, c = 10
+] [:comment // Проверка префиксного и постфиксного декремента
+] [:identifier c] [:operator =] [:operator --] [:identifier a] [:separator ;] [:comment // a = 5, c = 5
+] [:identifier c] [:operator =] [:identifier b] [:operator --] [:separator ;] [:comment // b = 10, c = 11
+] [:comment // Проверка работы со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:identifier a] [:operator +] [:identifier b] [:close-paren )] [:operator *] [:number 2] [:separator ;] [:comment // c = 30
+] [:identifier c] [:operator =] [:identifier a] [:operator +] [:open-paren (] [:identifier b] [:operator *] [:number 2] [:close-paren )] [:separator ;] [:comment // c = 25
+] [:comment // Сложные выражения со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:open-paren (] [:identifier a] [:operator ++] [:close-paren )] [:operator +] [:open-paren (] [:operator --] [:identifier b] [:close-paren )] [:close-paren )] [:operator *] [:open-paren (] [:identifier a] [:operator -] [:identifier b] [:close-paren )] [:separator ;] [:comment // c = 15 * (-4) = -60
+] [:keyword return] [:identifier c] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier a] [:operator =] [:number 5] [:separator ;] [:keyword int] [:identifier b] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier c] [:operator =] [:number 0] [:separator ;] [:comment // Проверка префиксного и постфиксного инкремента
+] [:identifier c] [:operator =] [:operator ++] [:identifier a] [:separator ;] [:comment // a = 6, c = 6
+] [:identifier c] [:operator =] [:identifier b] [:operator ++] [:separator ;] [:comment // b = 11, c = 10
+] [:comment // Проверка префиксного и постфиксного декремента
+] [:identifier c] [:operator =] [:operator --] [:identifier a] [:separator ;] [:comment // a = 5, c = 5
+] [:identifier c] [:operator =] [:identifier b] [:operator --] [:separator ;] [:comment // b = 10, c = 11
+] [:comment // Проверка работы со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:identifier a] [:operator +] [:identifier b] [:close-paren )] [:operator *] [:number 2] [:separator ;] [:comment // c = 30
+] [:identifier c] [:operator =] [:identifier a] [:operator +] [:open-paren (] [:identifier b] [:operator *] [:number 2] [:close-paren )] [:separator ;] [:comment // c = 25
+] [:comment // Сложные выражения со скобками
+] [:identifier c] [:operator =] [:open-paren (] [:open-paren (] [:identifier a] [:operator ++] [:close-paren )] [:operator +] [:open-paren (] [:operator --] [:identifier b] [:close-paren )] [:close-paren )] [:operator *] [:open-paren (] [:identifier a] [:operator -] [:identifier b] [:close-paren )] [:separator ;] [:comment // c = 15 * (-4) = -60
+] [:keyword return] [:identifier c] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки операций инкремента, декремента и скобок */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

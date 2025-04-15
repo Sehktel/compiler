@@ -1,0 +1,46 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\file2.c
+Содержимое:
+// Условные операторы и циклы
+int main() {
+    int x = 10;
+    int y = 0;
+    
+    if (x > 0) {
+        while (x > 0) {
+            y = y + 1;
+            x = x - 1;
+        }
+    } else {
+        y = -1;
+    }
+    
+    return y;
+} 
+
+Токены:
+[[:comment // Условные операторы и циклы
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 0] [:separator ;] [:keyword if] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:keyword while] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:identifier y] [:operator =] [:identifier y] [:operator +] [:number 1] [:separator ;] [:identifier x] [:operator =] [:identifier x] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:close-brace }] [:keyword else] [:open-brace {] [:identifier y] [:operator =] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:keyword return] [:identifier y] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment // Условные операторы и циклы
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 0] [:separator ;] [:keyword if] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:keyword while] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:identifier y] [:operator =] [:identifier y] [:operator +] [:number 1] [:separator ;] [:identifier x] [:operator =] [:identifier x] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:close-brace }] [:keyword else] [:open-brace {] [:identifier y] [:operator =] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:keyword return] [:identifier y] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment // Условные операторы и циклы
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 0] [:separator ;] [:keyword if] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:keyword while] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:identifier y] [:operator =] [:identifier y] [:operator +] [:number 1] [:separator ;] [:identifier x] [:operator =] [:identifier x] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:close-brace }] [:keyword else] [:open-brace {] [:identifier y] [:operator =] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:keyword return] [:identifier y] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment // Условные операторы и циклы
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 0] [:separator ;] [:keyword if] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:keyword while] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:identifier y] [:operator =] [:identifier y] [:operator +] [:number 1] [:separator ;] [:identifier x] [:operator =] [:identifier x] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:close-brace }] [:keyword else] [:open-brace {] [:identifier y] [:operator =] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:keyword return] [:identifier y] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Условные операторы и циклы
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment // Условные операторы и циклы
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 10] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 0] [:separator ;] [:keyword if] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:keyword while] [:open-paren (] [:identifier x] [:operator >] [:number 0] [:close-paren )] [:open-brace {] [:identifier y] [:operator =] [:identifier y] [:operator +] [:number 1] [:separator ;] [:identifier x] [:operator =] [:identifier x] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:close-brace }] [:keyword else] [:open-brace {] [:identifier y] [:operator =] [:operator -] [:number 1] [:separator ;] [:close-brace }] [:keyword return] [:identifier y] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Условные операторы и циклы
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

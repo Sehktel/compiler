@@ -1,0 +1,37 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\file1.c
+Содержимое:
+// Базовые арифметические операции и переменные
+int main() {
+    int x = 1;
+    int y = 2;
+    int z = x + y * 3;
+    return z;
+} 
+
+Токены:
+[[:comment // Базовые арифметические операции и переменные
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 2] [:separator ;] [:keyword int] [:identifier z] [:operator =] [:identifier x] [:operator +] [:identifier y] [:operator *] [:number 3] [:separator ;] [:keyword return] [:identifier z] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment // Базовые арифметические операции и переменные
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 2] [:separator ;] [:keyword int] [:identifier z] [:operator =] [:identifier x] [:operator +] [:identifier y] [:operator *] [:number 3] [:separator ;] [:keyword return] [:identifier z] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment // Базовые арифметические операции и переменные
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 2] [:separator ;] [:keyword int] [:identifier z] [:operator =] [:identifier x] [:operator +] [:identifier y] [:operator *] [:number 3] [:separator ;] [:keyword return] [:identifier z] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment // Базовые арифметические операции и переменные
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 2] [:separator ;] [:keyword int] [:identifier z] [:operator =] [:identifier x] [:operator +] [:identifier y] [:operator *] [:number 3] [:separator ;] [:keyword return] [:identifier z] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Базовые арифметические операции и переменные
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment // Базовые арифметические операции и переменные
+] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier x] [:operator =] [:number 1] [:separator ;] [:keyword int] [:identifier y] [:operator =] [:number 2] [:separator ;] [:keyword int] [:identifier z] [:operator =] [:identifier x] [:operator +] [:identifier y] [:operator *] [:number 3] [:separator ;] [:keyword return] [:identifier z] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Базовые арифметические операции и переменные
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

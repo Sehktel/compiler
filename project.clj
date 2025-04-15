@@ -10,5 +10,8 @@
             [lein-codox "0.10.8"]]
   :main ^:skip-aot compiler.core
   :target-path "target/%s"
+  :jvm-opts ["-Dfile.encoding=UTF-8" "-Dconsole.encoding=UTF-8"]
   :profiles {:uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+                                 "-Dfile.encoding=UTF-8"
+                                 "-Dconsole.encoding=UTF-8"]}})

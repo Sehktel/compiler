@@ -80,10 +80,10 @@
    :shift_left ["<<"]
    :shift_right [">>"]
    
-   :identifier #"[a-zA-Z_][a-zA-Z0-9_]*"
+   :identifier #"[a-zA-Z_\p{L}][a-zA-Z0-9_\p{L}]*"
    :number #"0[xX][0-9a-fA-F]+|\d+"
    :string #"\"[^\"]*\""
-   :comment #"//.*|/\*[\s\S]*?\*/"})
+   :comment #"//[^\n]*|/\*[\s\S]*?\*/"})
 
 (defn is-keyword?
   "Проверяет, является ли строка ключевым словом языка C.
@@ -225,7 +225,7 @@
         (when (seq remaining-input)
           (let [token (or
                        ;; Проверяем комментарии
-                       (re-find #"^//.*" remaining-input)
+                       (re-find #"^//[^\n]*" remaining-input)
                        (re-find #"^/\*[\s\S]*?\*/" remaining-input)
                        ;; Проверяем строки
                        (re-find #"^\"[^\"]*\"" remaining-input)
@@ -236,7 +236,7 @@
                        (re-find #"^[+\-*/%=!&|^~<>]+" remaining-input)
                        (re-find #"^[(){}\[\],;:]" remaining-input)
                        ;; Проверяем идентификаторы
-                       (re-find #"^[a-zA-Z_][a-zA-Z0-9_]*" remaining-input))]
+                       (re-find #"^[a-zA-Z_\p{L}][a-zA-Z0-9_\p{L}]*" remaining-input))]
             
             (when token
               (let [token-type (get-token-type token)]

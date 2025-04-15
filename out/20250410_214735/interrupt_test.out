@@ -1,0 +1,117 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\interrupt_test.c
+Содержимое:
+/* Тестовый файл для проверки обработки прерываний */
+
+// Объявление обработчика прерывания
+void __attribute__((interrupt)) timer_interrupt_handler(void) {
+    // Обработка прерывания таймера
+    static int counter = 0;
+    counter++;
+    
+    // Сброс флага прерывания
+    // TIMER_FLAG = 0;
+}
+
+// Объявление обработчика прерывания с параметрами
+void __attribute__((interrupt)) uart_interrupt_handler(int status) {
+    // Обработка прерывания UART
+    if (status & 0x01) {
+        // Обработка приема данных
+    }
+    if (status & 0x02) {
+        // Обработка передачи данных
+    }
+}
+
+int main() {
+    // Инициализация прерываний
+    // ENABLE_INTERRUPTS();
+    
+    // Основной цикл программы
+    while(1) {
+        // Основной код программы
+    }
+    
+    return 0;
+} 
+
+Токены:
+[[:comment /* Тестовый файл для проверки обработки прерываний */] [:comment // Объявление обработчика прерывания
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier timer_interrupt_handler] [:open-paren (] [:keyword void] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания таймера
+] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Сброс флага прерывания
+] [:comment // TIMER_FLAG = 0;
+] [:close-brace }] [:comment // Объявление обработчика прерывания с параметрами
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier uart_interrupt_handler] [:open-paren (] [:keyword int] [:identifier status] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания UART
+] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Обработка приема данных
+] [:close-brace }] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x02] [:close-paren )] [:open-brace {] [:comment // Обработка передачи данных
+] [:close-brace }] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний
+] [:comment // ENABLE_INTERRUPTS();
+] [:comment // Основной цикл программы
+] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы
+] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment /* Тестовый файл для проверки обработки прерываний */] [:comment // Объявление обработчика прерывания
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier timer_interrupt_handler] [:open-paren (] [:keyword void] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания таймера
+] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Сброс флага прерывания
+] [:comment // TIMER_FLAG = 0;
+] [:close-brace }] [:comment // Объявление обработчика прерывания с параметрами
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier uart_interrupt_handler] [:open-paren (] [:keyword int] [:identifier status] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания UART
+] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Обработка приема данных
+] [:close-brace }] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x02] [:close-paren )] [:open-brace {] [:comment // Обработка передачи данных
+] [:close-brace }] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний
+] [:comment // ENABLE_INTERRUPTS();
+] [:comment // Основной цикл программы
+] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы
+] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment /* Тестовый файл для проверки обработки прерываний */] [:comment // Объявление обработчика прерывания
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier timer_interrupt_handler] [:open-paren (] [:keyword void] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания таймера
+] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Сброс флага прерывания
+] [:comment // TIMER_FLAG = 0;
+] [:close-brace }] [:comment // Объявление обработчика прерывания с параметрами
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier uart_interrupt_handler] [:open-paren (] [:keyword int] [:identifier status] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания UART
+] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Обработка приема данных
+] [:close-brace }] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x02] [:close-paren )] [:open-brace {] [:comment // Обработка передачи данных
+] [:close-brace }] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний
+] [:comment // ENABLE_INTERRUPTS();
+] [:comment // Основной цикл программы
+] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы
+] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки обработки прерываний */] [:comment // Объявление обработчика прерывания
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier timer_interrupt_handler] [:open-paren (] [:keyword void] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания таймера
+] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Сброс флага прерывания
+] [:comment // TIMER_FLAG = 0;
+] [:close-brace }] [:comment // Объявление обработчика прерывания с параметрами
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier uart_interrupt_handler] [:open-paren (] [:keyword int] [:identifier status] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания UART
+] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Обработка приема данных
+] [:close-brace }] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x02] [:close-paren )] [:open-brace {] [:comment // Обработка передачи данных
+] [:close-brace }] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний
+] [:comment // ENABLE_INTERRUPTS();
+] [:comment // Основной цикл программы
+] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы
+] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки обработки прерываний */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки обработки прерываний */] [:comment // Объявление обработчика прерывания
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier timer_interrupt_handler] [:open-paren (] [:keyword void] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания таймера
+] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Сброс флага прерывания
+] [:comment // TIMER_FLAG = 0;
+] [:close-brace }] [:comment // Объявление обработчика прерывания с параметрами
+] [:keyword void] [:identifier __attribute__] [:open-paren (] [:open-paren (] [:keyword interrupt] [:close-paren )] [:close-paren )] [:identifier uart_interrupt_handler] [:open-paren (] [:keyword int] [:identifier status] [:close-paren )] [:open-brace {] [:comment // Обработка прерывания UART
+] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Обработка приема данных
+] [:close-brace }] [:keyword if] [:open-paren (] [:identifier status] [:operator &] [:number 0x02] [:close-paren )] [:open-brace {] [:comment // Обработка передачи данных
+] [:close-brace }] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний
+] [:comment // ENABLE_INTERRUPTS();
+] [:comment // Основной цикл программы
+] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы
+] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки обработки прерываний */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

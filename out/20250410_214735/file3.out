@@ -1,0 +1,44 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\file3.c
+Содержимое:
+// Цикл for и вызовы функций
+int sum(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int total = 0;
+    
+    for (int i = 0; i < 10; i = i + 1) {
+        total = sum(total, i);
+    }
+    
+    return total;
+} 
+
+Токены:
+[[:comment // Цикл for и вызовы функций
+] [:keyword int] [:identifier sum] [:open-paren (] [:keyword int] [:identifier a] [:separator ,] [:keyword int] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier total] [:operator =] [:number 0] [:separator ;] [:keyword for] [:open-paren (] [:keyword int] [:identifier i] [:operator =] [:number 0] [:separator ;] [:identifier i] [:operator <] [:number 10] [:separator ;] [:identifier i] [:operator =] [:identifier i] [:operator +] [:number 1] [:close-paren )] [:open-brace {] [:identifier total] [:operator =] [:identifier sum] [:open-paren (] [:identifier total] [:separator ,] [:identifier i] [:close-paren )] [:separator ;] [:close-brace }] [:keyword return] [:identifier total] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment // Цикл for и вызовы функций
+] [:keyword int] [:identifier sum] [:open-paren (] [:keyword int] [:identifier a] [:separator ,] [:keyword int] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier total] [:operator =] [:number 0] [:separator ;] [:keyword for] [:open-paren (] [:keyword int] [:identifier i] [:operator =] [:number 0] [:separator ;] [:identifier i] [:operator <] [:number 10] [:separator ;] [:identifier i] [:operator =] [:identifier i] [:operator +] [:number 1] [:close-paren )] [:open-brace {] [:identifier total] [:operator =] [:identifier sum] [:open-paren (] [:identifier total] [:separator ,] [:identifier i] [:close-paren )] [:separator ;] [:close-brace }] [:keyword return] [:identifier total] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment // Цикл for и вызовы функций
+] [:keyword int] [:identifier sum] [:open-paren (] [:keyword int] [:identifier a] [:separator ,] [:keyword int] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier total] [:operator =] [:number 0] [:separator ;] [:keyword for] [:open-paren (] [:keyword int] [:identifier i] [:operator =] [:number 0] [:separator ;] [:identifier i] [:operator <] [:number 10] [:separator ;] [:identifier i] [:operator =] [:identifier i] [:operator +] [:number 1] [:close-paren )] [:open-brace {] [:identifier total] [:operator =] [:identifier sum] [:open-paren (] [:identifier total] [:separator ,] [:identifier i] [:close-paren )] [:separator ;] [:close-brace }] [:keyword return] [:identifier total] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment // Цикл for и вызовы функций
+] [:keyword int] [:identifier sum] [:open-paren (] [:keyword int] [:identifier a] [:separator ,] [:keyword int] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier total] [:operator =] [:number 0] [:separator ;] [:keyword for] [:open-paren (] [:keyword int] [:identifier i] [:operator =] [:number 0] [:separator ;] [:identifier i] [:operator <] [:number 10] [:separator ;] [:identifier i] [:operator =] [:identifier i] [:operator +] [:number 1] [:close-paren )] [:open-brace {] [:identifier total] [:operator =] [:identifier sum] [:open-paren (] [:identifier total] [:separator ,] [:identifier i] [:close-paren )] [:separator ;] [:close-brace }] [:keyword return] [:identifier total] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Цикл for и вызовы функций
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment // Цикл for и вызовы функций
+] [:keyword int] [:identifier sum] [:open-paren (] [:keyword int] [:identifier a] [:separator ,] [:keyword int] [:identifier b] [:close-paren )] [:open-brace {] [:keyword return] [:identifier a] [:operator +] [:identifier b] [:separator ;] [:close-brace }] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:keyword int] [:identifier total] [:operator =] [:number 0] [:separator ;] [:keyword for] [:open-paren (] [:keyword int] [:identifier i] [:operator =] [:number 0] [:separator ;] [:identifier i] [:operator <] [:number 10] [:separator ;] [:identifier i] [:operator =] [:identifier i] [:operator +] [:number 1] [:close-paren )] [:open-brace {] [:identifier total] [:operator =] [:identifier sum] [:open-paren (] [:identifier total] [:separator ,] [:identifier i] [:close-paren )] [:separator ;] [:close-brace }] [:keyword return] [:identifier total] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment // Цикл for и вызовы функций
+]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null

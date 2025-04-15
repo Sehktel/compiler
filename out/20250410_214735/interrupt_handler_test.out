@@ -1,0 +1,79 @@
+[DEBUG]: Запуск компилятора в режиме отладки
+[TRACE]: Начало трассировки выполнения
+
+Анализ файла: D:\Work\ClojureDev\c2\Compiler\c2\compiler\test\c4ast\interrupt_handler_test.c
+Содержимое:
+/* Тестовый файл для проверки обработчиков прерываний */
+
+// Объявление обработчика прерывания для таймера 0
+void timer0_isr() interrupt 1 {
+    static int counter = 0;
+    counter++;
+    
+    // Инвертируем бит на порту P1
+    P1 ^= 0x01;
+}
+
+// Объявление обработчика прерывания для UART
+void uart_isr() interrupt 2 {
+    // Проверяем статус прерывания
+    if (SCON & 0x01) {  // Прерывание по приему
+        char data = SBUF;  // Считываем данные
+        
+        // Обработка полученных данных
+        P2 = data;  // Вывод данных на порт P2
+    }
+    
+    // Сброс флага прерывания
+    SCON &= ~0x01;
+}
+
+// Функция инициализации прерываний
+void init_interrupts() {
+    // Разрешаем глобальные прерывания
+    EA = 1;
+    
+    // Разрешаем прерывания от таймера 0
+    ET0 = 1;
+    
+    // Разрешаем прерывания от UART
+    ES = 1;
+    
+    // Настраиваем таймер 0
+    TMOD = 0x01;  // Режим 1 (16-битный таймер)
+    TH0 = 0xFC;   // Загружаем начальное значение для 1 мс
+    TL0 = 0x66;
+    TR0 = 1;      // Запускаем таймер
+}
+
+// Главная функция
+int main() {
+    // Инициализация прерываний
+    init_interrupts();
+    
+    // Бесконечный цикл
+    while (1) {
+        // Основной код программы
+        // ...
+    }
+    
+    return 0;
+} 
+
+Токены:
+[[:comment /* Тестовый файл для проверки обработчиков прерываний */] [:comment // Объявление обработчика прерывания для таймера 0] [:keyword void] [:identifier timer0_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 1] [:open-brace {] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Инвертируем бит на порту P1] [:identifier P1] [:operator ^=] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Объявление обработчика прерывания для UART] [:keyword void] [:identifier uart_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 2] [:open-brace {] [:comment // Проверяем статус прерывания] [:keyword if] [:open-paren (] [:identifier SCON] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Прерывание по приему] [:keyword char] [:identifier data] [:operator =] [:identifier SBUF] [:separator ;] [:comment // Считываем данные] [:comment // Обработка полученных данных] [:identifier P2] [:operator =] [:identifier data] [:separator ;] [:comment // Вывод данных на порт P2] [:close-brace }] [:comment // Сброс флага прерывания] [:identifier SCON] [:operator &=] [:operator ~] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Функция инициализации прерываний] [:keyword void] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Разрешаем глобальные прерывания] [:identifier EA] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от таймера 0] [:identifier ET0] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от UART] [:identifier ES] [:operator =] [:number 1] [:separator ;] [:comment // Настраиваем таймер 0] [:identifier TMOD] [:operator =] [:number 0x01] [:separator ;] [:comment // Режим 1 (16-битный таймер)] [:identifier TH0] [:operator =] [:number 0xFC] [:separator ;] [:comment // Загружаем начальное значение для 1 мс] [:identifier TL0] [:operator =] [:number 0x66] [:separator ;] [:identifier TR0] [:operator =] [:number 1] [:separator ;] [:comment // Запускаем таймер] [:close-brace }] [:comment // Главная функция] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:separator ;] [:comment // Бесконечный цикл] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы] [:comment // ...] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+
+AST:
+Начало парсинга входной строки
+Токены после лексического анализа: [[:comment /* Тестовый файл для проверки обработчиков прерываний */] [:comment // Объявление обработчика прерывания для таймера 0] [:keyword void] [:identifier timer0_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 1] [:open-brace {] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Инвертируем бит на порту P1] [:identifier P1] [:operator ^=] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Объявление обработчика прерывания для UART] [:keyword void] [:identifier uart_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 2] [:open-brace {] [:comment // Проверяем статус прерывания] [:keyword if] [:open-paren (] [:identifier SCON] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Прерывание по приему] [:keyword char] [:identifier data] [:operator =] [:identifier SBUF] [:separator ;] [:comment // Считываем данные] [:comment // Обработка полученных данных] [:identifier P2] [:operator =] [:identifier data] [:separator ;] [:comment // Вывод данных на порт P2] [:close-brace }] [:comment // Сброс флага прерывания] [:identifier SCON] [:operator &=] [:operator ~] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Функция инициализации прерываний] [:keyword void] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Разрешаем глобальные прерывания] [:identifier EA] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от таймера 0] [:identifier ET0] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от UART] [:identifier ES] [:operator =] [:number 1] [:separator ;] [:comment // Настраиваем таймер 0] [:identifier TMOD] [:operator =] [:number 0x01] [:separator ;] [:comment // Режим 1 (16-битный таймер)] [:identifier TH0] [:operator =] [:number 0xFC] [:separator ;] [:comment // Загружаем начальное значение для 1 мс] [:identifier TL0] [:operator =] [:number 0x66] [:separator ;] [:identifier TR0] [:operator =] [:number 1] [:separator ;] [:comment // Запускаем таймер] [:close-brace }] [:comment // Главная функция] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:separator ;] [:comment // Бесконечный цикл] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы] [:comment // ...] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Парсинг выражения. Токены: [[:comment /* Тестовый файл для проверки обработчиков прерываний */] [:comment // Объявление обработчика прерывания для таймера 0] [:keyword void] [:identifier timer0_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 1] [:open-brace {] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Инвертируем бит на порту P1] [:identifier P1] [:operator ^=] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Объявление обработчика прерывания для UART] [:keyword void] [:identifier uart_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 2] [:open-brace {] [:comment // Проверяем статус прерывания] [:keyword if] [:open-paren (] [:identifier SCON] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Прерывание по приему] [:keyword char] [:identifier data] [:operator =] [:identifier SBUF] [:separator ;] [:comment // Считываем данные] [:comment // Обработка полученных данных] [:identifier P2] [:operator =] [:identifier data] [:separator ;] [:comment // Вывод данных на порт P2] [:close-brace }] [:comment // Сброс флага прерывания] [:identifier SCON] [:operator &=] [:operator ~] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Функция инициализации прерываний] [:keyword void] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Разрешаем глобальные прерывания] [:identifier EA] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от таймера 0] [:identifier ET0] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от UART] [:identifier ES] [:operator =] [:number 1] [:separator ;] [:comment // Настраиваем таймер 0] [:identifier TMOD] [:operator =] [:number 0x01] [:separator ;] [:comment // Режим 1 (16-битный таймер)] [:identifier TH0] [:operator =] [:number 0xFC] [:separator ;] [:comment // Загружаем начальное значение для 1 мс] [:identifier TL0] [:operator =] [:number 0x66] [:separator ;] [:identifier TR0] [:operator =] [:number 1] [:separator ;] [:comment // Запускаем таймер] [:close-brace }] [:comment // Главная функция] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:separator ;] [:comment // Бесконечный цикл] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы] [:comment // ...] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки обработчиков прерываний */] [:comment // Объявление обработчика прерывания для таймера 0] [:keyword void] [:identifier timer0_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 1] [:open-brace {] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Инвертируем бит на порту P1] [:identifier P1] [:operator ^=] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Объявление обработчика прерывания для UART] [:keyword void] [:identifier uart_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 2] [:open-brace {] [:comment // Проверяем статус прерывания] [:keyword if] [:open-paren (] [:identifier SCON] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Прерывание по приему] [:keyword char] [:identifier data] [:operator =] [:identifier SBUF] [:separator ;] [:comment // Считываем данные] [:comment // Обработка полученных данных] [:identifier P2] [:operator =] [:identifier data] [:separator ;] [:comment // Вывод данных на порт P2] [:close-brace }] [:comment // Сброс флага прерывания] [:identifier SCON] [:operator &=] [:operator ~] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Функция инициализации прерываний] [:keyword void] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Разрешаем глобальные прерывания] [:identifier EA] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от таймера 0] [:identifier ET0] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от UART] [:identifier ES] [:operator =] [:number 1] [:separator ;] [:comment // Настраиваем таймер 0] [:identifier TMOD] [:operator =] [:number 0x01] [:separator ;] [:comment // Режим 1 (16-битный таймер)] [:identifier TH0] [:operator =] [:number 0xFC] [:separator ;] [:comment // Загружаем начальное значение для 1 мс] [:identifier TL0] [:operator =] [:number 0x66] [:separator ;] [:identifier TR0] [:operator =] [:number 1] [:separator ;] [:comment // Запускаем таймер] [:close-brace }] [:comment // Главная функция] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:separator ;] [:comment // Бесконечный цикл] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы] [:comment // ...] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки обработчиков прерываний */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Парсинг терма. Токены: [[:comment /* Тестовый файл для проверки обработчиков прерываний */] [:comment // Объявление обработчика прерывания для таймера 0] [:keyword void] [:identifier timer0_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 1] [:open-brace {] [:identifier static] [:keyword int] [:identifier counter] [:operator =] [:number 0] [:separator ;] [:identifier counter] [:operator ++] [:separator ;] [:comment // Инвертируем бит на порту P1] [:identifier P1] [:operator ^=] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Объявление обработчика прерывания для UART] [:keyword void] [:identifier uart_isr] [:open-paren (] [:close-paren )] [:keyword interrupt] [:number 2] [:open-brace {] [:comment // Проверяем статус прерывания] [:keyword if] [:open-paren (] [:identifier SCON] [:operator &] [:number 0x01] [:close-paren )] [:open-brace {] [:comment // Прерывание по приему] [:keyword char] [:identifier data] [:operator =] [:identifier SBUF] [:separator ;] [:comment // Считываем данные] [:comment // Обработка полученных данных] [:identifier P2] [:operator =] [:identifier data] [:separator ;] [:comment // Вывод данных на порт P2] [:close-brace }] [:comment // Сброс флага прерывания] [:identifier SCON] [:operator &=] [:operator ~] [:number 0x01] [:separator ;] [:close-brace }] [:comment // Функция инициализации прерываний] [:keyword void] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Разрешаем глобальные прерывания] [:identifier EA] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от таймера 0] [:identifier ET0] [:operator =] [:number 1] [:separator ;] [:comment // Разрешаем прерывания от UART] [:identifier ES] [:operator =] [:number 1] [:separator ;] [:comment // Настраиваем таймер 0] [:identifier TMOD] [:operator =] [:number 0x01] [:separator ;] [:comment // Режим 1 (16-битный таймер)] [:identifier TH0] [:operator =] [:number 0xFC] [:separator ;] [:comment // Загружаем начальное значение для 1 мс] [:identifier TL0] [:operator =] [:number 0x66] [:separator ;] [:identifier TR0] [:operator =] [:number 1] [:separator ;] [:comment // Запускаем таймер] [:close-brace }] [:comment // Главная функция] [:keyword int] [:identifier main] [:open-paren (] [:close-paren )] [:open-brace {] [:comment // Инициализация прерываний] [:identifier init_interrupts] [:open-paren (] [:close-paren )] [:separator ;] [:comment // Бесконечный цикл] [:keyword while] [:open-paren (] [:number 1] [:close-paren )] [:open-brace {] [:comment // Основной код программы] [:comment // ...] [:close-brace }] [:keyword return] [:number 0] [:separator ;] [:close-brace }]]
+Токен не соответствует предикату: [:comment /* Тестовый файл для проверки обработчиков прерываний */]
+Ошибка при парсинге терма. Токены не соответствуют ни одному паттерну.
+Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.
+Парсинг выражения завершен. Оставшиеся токены: nil
+Парсинг успешно завершен
+Ошибка при построении AST: результат парсинга null
