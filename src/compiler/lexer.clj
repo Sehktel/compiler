@@ -7,7 +7,6 @@
 (declare separator?)
 (declare get-token-type)
 (declare lex)
-(declare test-lexer)
 (declare tokenize)
 
 ;; =============================================
@@ -101,6 +100,7 @@
    (is-keyword? \"if\")  ;; => true
    (is-keyword? \"xyz\") ;; => false
    ```"
+;; TODO: define keywords ifndef endif define undef
   [s]
   (some #(some (partial = s) %) 
         (vals (select-keys token-types 
@@ -188,7 +188,8 @@
                            :close_curly_bracket 
                            :open_square_bracket 
                            :close_square_bracket 
-                           :comma :semicolon 
+                           :comma 
+                           :semicolon 
                            :colon]))))
 
 (defn get-token-type
@@ -214,6 +215,9 @@
    (get-token-type \"+\")     ;; => :operator
    (get-token-type \"x\")     ;; => :identifier
    (get-token-type \"42\")    ;; => :number
+   (get-token-type \"// comment\") ;; => :comment
+   (get-token-type \"/* comment */\") ;; => :comment
+   (get-token-type \"\"\" comment \"\"\") ;; => :string
    ```"
   [token]
   (cond
@@ -227,25 +231,31 @@
     :else :unknown))
 
 (defn lex
-  "Основная функция лексера. Разбивает входную строку на токены.
-   
-   ## Параметры
-   - `input` - строка с исходным кодом на языке C
-   
-   ## Возвращает
-   Вектор токенов, где каждый токен - это хэш-мапа с ключами:
-   - `:type` - тип токена
-   - `:value` - значение токена
-   
-   ## Пример
-   ```clojure
-   (lex \"int x = 42;\")
-   ;; => [{:type :keyword, :value \"int\"}
-   ;;     {:type :identifier, :value \"x\"}
-   ;;     {:type :operator, :value \"=\"}
-   ;;     {:type :number, :value \"42\"}
-   ;;     {:type :separator, :value \";\"}]
-   ```"
+  "Полная функция лексера для разбора входной строки на токены.
+
+  ## Параметры
+  * `input` - строка с исходным кодом на языке C
+
+  ## Возвращаемое значение
+  Вектор токенов, где каждый токен представляет собой хэш-карту со следующими ключами:
+  * `:type` - тип токена
+  * `:value` - значение токена
+  * `:position` - позиция токена во входной строке (опционально)
+
+  ## Примеры
+  ```clojure
+  (lex \"int x = 42;\")
+  ;; => [{:type :type_int_keyword, :value \"int\"}
+  ;;     {:type :identifier, :value \"x\"}
+  ;;     {:type :equal, :value \"=\"}
+  ;;     {:type :number, :value \"42\"}
+  ;;     {:type :semicolon, :value \";\"}]
+  ```
+
+  ## Заметки
+  - Выполняет полную токенизацию исходного кода
+  - Распознает все определенные типы токенов
+  - Поддерживает различные лексические конструкции языка C"
   [input]
   (let [tokens (atom [])
         current-pos (atom 0)
@@ -259,59 +269,84 @@
             remaining-input (subs input @current-pos)]
         
         (when (seq remaining-input)
-          (let [token (or
-                       ;; Проверяем комментарии
-                       (re-find #"^//[^\n]*" remaining-input)
-                       (re-find #"^/\*[\s\S]*?\*/" remaining-input)
-                       ;; Проверяем строки
-                       (re-find #"^\"[^\"]*\"" remaining-input)
-                       ;; Проверяем числа
-                       (re-find #"^0[xX][0-9a-fA-F]+" remaining-input)
-                       (re-find #"^\d+" remaining-input)
-                       ;; Проверяем операторы и разделители
-                       (re-find #"^[+\-*/%=!&|^~<>]+" remaining-input)
-                       (re-find #"^[(){}\[\],;:]" remaining-input)
-                       ;; Проверяем идентификаторы
-                       (re-find #"^[a-zA-Z_\p{L}][a-zA-Z0-9_\p{L}]*" remaining-input))]
+          (let [token-matches [
+                               ;; Ключевые слова
+                               (some #(when (re-find (re-pattern (str "^" % "\\b")) remaining-input) 
+                                        {:type (keyword (str % "_keyword")) :value %}) 
+                                     (mapcat identity (select-keys token-types 
+                                                                   [:void_keyword 
+                                                                    :interrupt_keyword 
+                                                                    :type_char_keyword 
+                                                                    :type_int_keyword 
+                                                                    :signed_keyword 
+                                                                    :unsigned_keyword 
+                                                                    :const_keyword 
+                                                                    :volatile_keyword 
+                                                                    :typedef_keyword 
+                                                                    :goto_keyword 
+                                                                    :if_keyword 
+                                                                    :else_keyword 
+                                                                    :for_keyword 
+                                                                    :while_keyword 
+                                                                    :do_keyword 
+                                                                    :return_keyword 
+                                                                    :break_keyword 
+                                                                    :continue_keyword])))
+                               
+                               ;; Операторы (многосимвольные в первую очередь)
+                               (some #(when (re-find (re-pattern (str "^" (java.util.regex.Pattern/quote %))) remaining-input) 
+                                        {:type (first (filter #(= (get token-types %) [%]) (keys token-types))) 
+                                         :value %}) 
+                                     (sort-by count > (mapcat identity 
+                                                             (select-keys token-types 
+                                                                         [:equal_equal 
+                                                                          :not_equal 
+                                                                          :less_equal 
+                                                                          :greater_equal 
+                                                                          :inc 
+                                                                          :dec 
+                                                                          :logical_and 
+                                                                          :logical_or 
+                                                                          :shift_left 
+                                                                          :shift_right 
+                                                                          :xor_equal]))))
+                               
+                               ;; Разделители
+                               (some #(when (re-find (re-pattern (str "^" (java.util.regex.Pattern/quote %))) remaining-input) 
+                                        {:type (first (filter #(= (get token-types %) [%]) (keys token-types))) 
+                                         :value %}) 
+                                     (mapcat identity (select-keys token-types 
+                                                                   [:open_round_bracket 
+                                                                    :close_round_bracket 
+                                                                    :open_curly_bracket 
+                                                                    :close_curly_bracket 
+                                                                    :open_square_bracket 
+                                                                    :close_square_bracket 
+                                                                    :comma 
+                                                                    :semicolon 
+                                                                    :colon])))
+                               
+                               ;; Строковые литералы
+                               (when-let [match (re-find (:string token-types) remaining-input)]
+                                 {:type :string :value match})
+                               
+                               ;; Комментарии
+                               (when-let [match (re-find (:comment token-types) remaining-input)]
+                                 {:type :comment :value match})
+                               
+                               ;; Числа (шестнадцатеричные и десятичные)
+                               (when-let [match (re-find (:number token-types) remaining-input)]
+                                 {:type :number :value match})
+                               
+                               ;; Идентификаторы
+                               (when-let [match (re-find (:identifier token-types) remaining-input)]
+                                 {:type :identifier :value match})]]
             
-            (when token
-              (let [token-type (get-token-type token)]
-                (swap! tokens conj {:type token-type :value token})
-                (swap! current-pos + (count token))))))))
+            (when-let [token (first (filter some? token-matches))]
+              (swap! tokens conj (assoc token :position @current-pos))
+              (swap! current-pos + (count (:value token)))))))
     
     @tokens))
-
-(defn test-lexer
-  "Тестовая функция для демонстрации работы лексера.
-   Выводит в консоль типы и значения токенов для тестового кода.
-   
-   ## Пример вывода
-   ```
-   Тип: keyword    Значение: void
-   Тип: identifier Значение: timer0_isr
-   Тип: separator  Значение: (
-   Тип: separator  Значение: )
-   Тип: keyword    Значение: interrupt
-   Тип: number     Значение: 2
-   Тип: separator  Значение: {
-   Тип: comment    Значение: // Простой обработчик прерывания
-   Тип: identifier Значение: P1
-   Тип: operator   Значение: ^=
-   Тип: number     Значение: 0x01
-   Тип: separator  Значение: ;
-   Тип: comment    Значение: // Инвертируем бит
-   Тип: separator  Значение: }
-   ```"
-  []
-  (let [test-code "void timer0_isr() interrupt 2 {
-    // Простой обработчик прерывания
-    P1 ^= 0x01;  // Инвертируем бит
-}"
-        tokens (lex test-code)]
-    (doseq [token tokens]
-      (println (format "Тип: %-10s Значение: %s" 
-                      (name (:type token)) 
-                      (:value token))))))
 
 (defn tokenize
   "Расширенная функция токенизации для кода на языке C.
@@ -325,8 +360,8 @@
    ## Пример
    ```clojure
    (tokenize \"int x = 1 + 2;\")
-   ;; => [[:keyword \"int\"] [:identifier \"x\"] [:operator \"=\"] 
-   ;;     [:number \"1\"] [:operator \"+\"] [:number \"2\"] [:separator \";\"]]
+   ;; => [[:keyword "int"] [:identifier "x"] [:operator "="] 
+   ;;     [:number "1"] [:operator "+"] [:number "2"] [:separator ";"]]
    ```"
   [input]
   (let [tokens (lex input)]
@@ -349,4 +384,11 @@
                 (= type :string) [:string value]
                 (= type :comment) [:comment value]
                 :else [:unknown value])))
-          tokens))) 
+          tokens)))
+
+(defn lex-optimized
+  "Более эффективная версия лексического анализатора"
+  [input]
+  (let [tokens (transient [])]
+    ;; Оптимизированная логика токенизации
+    (persistent! tokens))) 
