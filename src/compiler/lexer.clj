@@ -30,10 +30,12 @@
    - Комментарии (однострочные и многострочные)"
   {:void_keyword ["void"]
    :interrupt_keyword ["interrupt"]
-   :type_keyword ["char" "int"]
+   :type_char_keyword ["char"]
+   :type_int_keyword ["int"]
    :signed_keyword ["signed"]
    :unsigned_keyword ["unsigned"]
    :const_keyword ["const"]
+   :volatile_keyword ["volatile"]
    :typedef_keyword ["typedef"]
    :goto_keyword ["goto"]
    :if_keyword ["if"]
@@ -102,12 +104,24 @@
   [s]
   (some #(some (partial = s) %) 
         (vals (select-keys token-types 
-                          [:void_keyword :interrupt_keyword :type_keyword 
-                           :signed_keyword :unsigned_keyword :const_keyword 
-                           :typedef_keyword :goto_keyword :if_keyword 
-                           :else_keyword :for_keyword :while_keyword 
-                           :do_keyword :return_keyword :break_keyword 
-                           :continue_keyword]))))
+                          [ :void_keyword
+                            :interrupt_keyword
+                            :type_char_keyword
+                            :type_int_keyword
+                            :signed_keyword
+                            :unsigned_keyword
+                            :const_keyword
+                            :volatile_keyword
+                            :typedef_keyword
+                            :goto_keyword
+                            :if_keyword
+                            :else_keyword
+                            :for_keyword
+                            :while_keyword
+                            :do_keyword
+                            :return_keyword
+                            :break_keyword
+                            :continue_keyword]))))
 
 (defn operator?
   "Проверяет, является ли строка оператором языка C.
@@ -124,14 +138,32 @@
    (operator? \"xyz\") ;; => false
    ```"
   [s]
-  (contains? #{"+" "-" "*" "/" "%" 
-              "=" "==" "!=" 
-              "<" "<=" ">" ">=" 
-              "++" "--" "&&" "||" "!" 
-              "&" "|" "^" "~" 
-              "<<" ">>"
-              "+=" "-=" "*=" "/=" "%="
-              "&=" "|=" "^=" "<<=" ">>="} s))
+  (some #(some (partial = s) %) 
+        (vals (select-keys token-types 
+                          [ :plus 
+                            :minus 
+                            :asterisk 
+                            :slash 
+                            :percent 
+                            :equal 
+                            :equal_equal 
+                            :not_equal 
+                            :xor_equal 
+                            :less 
+                            :less_equal 
+                            :greater 
+                            :greater_equal 
+                            :inc 
+                            :dec 
+                            :logical_and 
+                            :logical_or 
+                            :logical_not 
+                            :bit_and 
+                            :bit_or 
+                            :bit_xor 
+                            :bit_not 
+                            :shift_left 
+                            :shift_right]))))
 
 (defn separator?
   "Проверяет, является ли строка разделителем языка C.
@@ -150,10 +182,14 @@
   [s]
   (some #(some (partial = s) %) 
         (vals (select-keys token-types 
-                          [:open_round_bracket :close_round_bracket 
-                           :open_curly_bracket :close_curly_bracket 
-                           :open_square_bracket :close_square_bracket 
-                           :comma :semicolon :colon]))))
+                          [:open_round_bracket 
+                           :close_round_bracket 
+                           :open_curly_bracket
+                           :close_curly_bracket 
+                           :open_square_bracket 
+                           :close_square_bracket 
+                           :comma :semicolon 
+                           :colon]))))
 
 (defn get-token-type
   "Определяет тип токена на основе его значения.
