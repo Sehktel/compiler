@@ -1,44 +1,104 @@
-# compiler
+# Компилятор языка C (Учебный проект)
 
-FIXME: description
+Данный проект представляет собой реализацию компилятора языка C-подобного языка для учебных целей.
 
-## Installation
+## Структура проекта
 
-Download from http://example.com/FIXME.
+- `src/compiler/lexer.clj` - лексический анализатор
+- `src/compiler/parser.clj` - синтаксический анализатор
+- `src/compiler/ast.clj` - абстрактное синтаксическое дерево
+- `test/compiler/test_lexer.clj` - тесты для лексического анализатора
 
-## Usage
+## Запуск
 
-FIXME: explanation
+### Используя Clojure CLI (deps.edn)
 
-    $ java -jar compiler-0.1.0-standalone.jar [args]
+```bash
+# Запуск демонстрации работы лексического анализатора
+clj -M -e "(require 'compiler.lexer) (compiler.lexer/-main)"
 
-## Options
+# Запуск тестов
+clj -M:test -m cognitect.test-runner
+```
 
-FIXME: listing of options this app accepts.
+### Используя Leiningen
 
-## Examples
+```bash
+# Запуск демонстрации работы лексического анализатора
+lein run -m compiler.lexer
 
-...
+# Запуск тестов
+lein test
+```
 
-### Bugs
+## Обработка escape-символов
 
-...
+В проекте реализована обработка escape-символов и обратных слешей в строках и комментариях:
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+- Строки: `"Hello\nWorld"`, `"Quoted \"text\""`, `"Path: C:\\Windows\\"`
+- Комментарии: `// Комментарий с \ обратным слешем`, `/* Многострочный комментарий с \ слешем */`
+
+## Лексический анализатор
+
+Лексический анализатор реализован с использованием детерминированного конечного автомата (DFA). Он выполняет следующие функции:
+
+1. Распознавание всех типов токенов C-подобного языка:
+   - Ключевые слова (`if`, `while`, `return`, и т.д.)
+   - Операторы (`+`, `-`, `*`, `/`, `==`, и т.д.)
+   - Разделители (скобки, запятые, точки с запятой)
+   - Идентификаторы
+   - Числовые литералы (десятичные и шестнадцатеричные)
+   - Строковые литералы
+   - Комментарии (однострочные и многострочные)
+
+2. Отслеживание позиции токенов в исходном коде (строка и колонка)
+
+3. Обработка escape-символов в строках и комментариях
+
+## Пример использования API
+
+```clojure
+(require '[compiler.lexer :as lexer])
+
+;; Анализ кода
+(def tokens (lexer/lex "int main() { return 0; }"))
+
+;; Преобразование токенов для парсера
+(def parser-tokens (lexer/tokenize "int main() { return 0; }"))
+
+;; Печать информации о токенах
+(lexer/print-lexer-tokens "int x = 10; // комментарий")
+```
+
+## Тестирование
+
+Тесты охватывают все аспекты лексического анализатора:
+- Распознавание всех типов токенов
+- Корректная обработка строк и комментариев
+- Обработка escape-символов
+- Правильное отслеживание позиций
+- Обработка сложных и краевых случаев
 
 ## License
 
-Copyright © 2025 FIXME
+MIT License
 
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
+Copyright (c) 2025 Sehktel
 
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

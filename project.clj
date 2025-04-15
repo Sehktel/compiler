@@ -1,17 +1,15 @@
 (defproject compiler "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://github.com/Sehktel/c2"
-  :license {:name "MIT"
+  :description "C-like language compiler for educational purposes"
+  :url "https://github.com/yourusername/compiler"
+  :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.11.1"]
-                 [org.clojure/tools.reader "1.3.0"]]
-  
-  :plugins [[com.github.clj-kondo/lein-clj-kondo "0.2.5"]
-            [lein-codox "0.10.8"]]
+  :dependencies [[org.clojure/clojure "1.11.1"]]
   :main ^:skip-aot compiler.core
   :target-path "target/%s"
-  :jvm-opts ["-Dfile.encoding=UTF-8" "-Dconsole.encoding=UTF-8"]
   :profiles {:uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"
-                                 "-Dfile.encoding=UTF-8"
-                                 "-Dconsole.encoding=UTF-8"]}})
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+             :dev {:dependencies [[org.clojure/test.check "1.1.1"]]}}
+  :aliases {"test-all" ["test" "compiler.test-lexer"]}
+  :test-paths ["test"]
+  :source-paths ["src"]
+  :resource-paths ["resources"])
