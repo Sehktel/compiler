@@ -1,4 +1,4 @@
-(ns test-8051-manual
+(ns test_8051_manual
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:gen-class))

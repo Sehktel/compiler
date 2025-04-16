@@ -1,4 +1,4 @@
-(ns compiler.code-generator
+(ns compiler.code_generator
   "Генератор ассемблерного кода для микроконтроллера 8051.
    
    ## Основные возможности

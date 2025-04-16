@@ -1,4 +1,4 @@
-(ns rename-namespaces
+(ns rename_namespaces
   (:require [clojure.java.io :as io]
             [clojure.string :as str]))
 
