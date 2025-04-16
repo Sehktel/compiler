@@ -13,3 +13,5 @@ pom.xml.asc
 .hg/
 /.cpcache
 error.log
+.clj-kondo/
+.cache
