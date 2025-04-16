@@ -1,4 +1,4 @@
-(ns compiler.test-ast
+(ns compiler.test_ast
   (:require 
    [clojure.test :refer :all]
    [compiler.parser :as parser]
@@ -28,4 +28,4 @@
 (defn run-ast-tests 
   "Запускает тесты AST"
   []
-  (run-tests 'compiler.test-ast)) 
+  (run-tests 'compiler.test_ast)) 

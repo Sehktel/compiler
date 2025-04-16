@@ -1,4 +1,4 @@
-(ns compiler.parser-test
+(ns compiler.parser_test
   (:require [clojure.test :refer :all]
             [compiler.parser :refer [parse parse-number parse-parens parse-binary-op parse-expr]]
             [compiler.lexer :refer [tokenize]]

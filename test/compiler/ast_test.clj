@@ -1,4 +1,4 @@
-(ns compiler.ast-test
+(ns compiler.ast_test
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [compiler.parser :refer [parse]]

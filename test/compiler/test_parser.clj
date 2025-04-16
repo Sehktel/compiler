@@ -1,4 +1,4 @@
-(ns compiler.test-parser
+(ns compiler.test_parser
   (:require 
    [clojure.test :refer :all]
    [compiler.parser :as parser]
@@ -32,4 +32,4 @@
 (defn run-parser-tests 
   "Запускает тесты парсера"
   []
-  (run-tests 'compiler.test-parser)) 
+  (run-tests 'compiler.test_parser)) 

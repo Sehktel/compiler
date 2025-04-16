@@ -1,4 +1,4 @@
-(ns compiler.lexer-test
+(ns compiler.lexer_test
   (:require [clojure.test :refer :all]
             [compiler.lexer :refer [lex]]))
 

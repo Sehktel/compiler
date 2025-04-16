@@ -1,4 +1,4 @@
-(ns test-8051-lexer
+(ns test_8051_lexer
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:gen-class))

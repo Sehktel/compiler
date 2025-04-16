@@ -1,4 +1,4 @@
-(ns test-8051
+(ns test_8051
   (:require [compiler.lexer :refer [tokenize]]
             [compiler.pre_processor :refer [preprocess]]
             [compiler.parser :refer [parse]]

@@ -1,4 +1,4 @@
-(ns compiler.test-lexer
+(ns compiler.test_lexer
   (:require [clojure.test :refer :all]
             [compiler.lexer :as lexer]))
 
@@ -308,4 +308,4 @@ void main() {
 (defn run-all-tests
   "Запуск всех тестов лексера"
   []
-  (run-tests 'compiler.test-lexer))
+  (run-tests 'compiler.test_lexer))

@@ -1,4 +1,4 @@
-(ns test-code-generator
+(ns test_code_generator
   (:require [clojure.test :refer :all]
             [compiler.lexer :refer [tokenize]]
             [compiler.parser :refer [parse]]
@@ -38,7 +38,7 @@
       (println assembly))))
 
 (defn run-tests []
-  (run-tests 'test-code-generator))
+  (run-tests 'test_code_generator))
 
 (defn -main []
   (run-tests)) 
