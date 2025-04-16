@@ -264,3 +264,9 @@ lein docs
 - Описание параметров и возвращаемых значений
 - Примеры использования функций
 
+# Generate documentation
+lein docs
+
+# Open generated docs
+open docs/index.html
+
