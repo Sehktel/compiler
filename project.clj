@@ -63,3 +63,14 @@
             "docs" ["codox"]}
   
   :repl-options {:init-ns user})
+
+(defproject graph-renderer "0.1.0-SNAPSHOT"
+  :description "Markdown DOT graph renderer and link updater"
+  :url "https://github.com/Sehktel/graph-renderer"
+  :license {:name "MIT License"
+            :url "https://opensource.org/licenses/MIT"}
+  :dependencies [[org.clojure/clojure "1.11.1"]]
+  :main graph-renderer.core
+  :target-path "target/%s"
+  :profiles {:uberjar {:aot :all
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
