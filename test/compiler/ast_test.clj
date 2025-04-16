@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [compiler.parser :refer [parse]]
-            [compiler.ast :refer [print-ast]]))
+            [compiler.ast :refer [print-ast]]
+            [compiler.lexer :refer [tokenize]]))
 
 (defn read-test-files
   "Читает все тестовые файлы из директории ./test/c4ast/"
@@ -19,12 +20,19 @@
   (doseq [file (read-test-files)]
     (println "\nФайл:" (.getName file))
     (println "Содержимое:")
-    (println (slurp file))
-    (println "\nAST:")
-    (let [ast (parse (slurp file))]
-      (if ast
-        (print-ast ast)
-        (println "Ошибка при построении AST")))))
+    (let [content (slurp file)]
+      (println content)
+      (println "\nТокены:")
+      (let [tokens (tokenize content)]
+        (println tokens)
+        (println "\nПарсинг AST:")
+        (let [ast (parse content)]
+          (if ast
+            (do 
+              (println "Успешное построение AST:")
+              (print-ast ast))
+            (println "Ошибка при построении AST")))
+        (println "=" * 50))))
 
 ;; Запуск тестов
 (defn -main []

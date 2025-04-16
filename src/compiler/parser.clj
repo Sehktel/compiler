@@ -1,11 +1,7 @@
 (ns compiler.parser
   (:require [clojure.string :as str]
             [compiler.ast :refer [->Num ->BinaryOp ->Parens ->Variable ->FunctionCall 
-                                 ->If ->While ->For ->Return ->UnaryOp ->Block]]
-            [compiler.lexer :refer [tokenize]])
-            
-            (require '[compiler.ast :as ast] :reload)
-(require '[compiler.parser :as parser] :reload))
+                                 ->If ->While ->For ->Return ->UnaryOp ->Block]]))
 
 ;; Флаг для включения/отключения режима отладки
 (def ^:dynamic *debug-mode* true)
@@ -597,15 +593,22 @@
   [input]
   (debug-log "Начало парсинга входной строки")
   (try
-    (let [tokens (tokenize input)]
+    (let [tokens (filterv 
+                   (fn [token] 
+                     (not (or 
+                            (= (first token) :comment)
+                            (= (first token) :whitespace)
+                            (= (first token) :comment_multiline))))
+                   (tokenize input))]
       (debug-log "Токены после лексического анализа:" tokens)
       (if (empty? tokens)
         (do 
           (debug-log "Ошибка: Пустой список токенов")
           nil)
-        (let [[ast remaining] (parse-expr tokens)]
+        (let [[ast remaining] (parse-statement tokens)]
           (debug-log "Парсинг выражения завершен. Оставшиеся токены:" remaining)
-          (if (empty? remaining)
+          (if (or (empty? remaining) 
+                  (every? #(= (first %) :comment) remaining))
             (do
               (debug-log "Парсинг успешно завершен")
               ast)

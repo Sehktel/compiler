@@ -9,53 +9,66 @@
 - `src/compiler/ast.clj` - абстрактное синтаксическое дерево
 - `test/compiler/test_lexer.clj` - тесты для лексического анализатора
 
-## Запуск
+## Установка зависимостей
 
-### Используя Clojure CLI (deps.edn)
-
+### Leiningen
 ```bash
-# Запуск демонстрации работы лексического анализатора
-clj -M -e "(require 'compiler.lexer) (compiler.lexer/-main)"
-
-# Запуск тестов
-clj -M:test -m cognitect.test-runner
+lein deps
 ```
 
-### Используя Leiningen
+### Clojure CLI
+```bash
+clj -P
+```
+
+## Запуск и тестирование
+
+### Тестирование AST
 
 ```bash
-# Запуск демонстрации работы лексического анализатора
-lein run -m compiler.lexer
+# Запуск тестов AST
+lein ast-test
 
-# Запуск тестов
+# Парсинг конкретного файла
+lein parse-file simple_arithmetic.c
+```
+
+### Запуск тестов
+
+```bash
+# Запуск всех тестов
 lein test
+
+# Запуск тестов с обновлением
+lein test-refresh
+
+# Генерация отчета о покрытии кода
+lein coverage
 ```
 
-## Обработка escape-символов
+### Статический анализ кода
 
-В проекте реализована обработка escape-символов и обратных слешей в строках и комментариях:
+```bash
+# Статический анализ с помощью Kibit
+lein lint
+```
 
-- Строки: `"Hello\nWorld"`, `"Quoted \"text\""`, `"Path: C:\\Windows\\"`
-- Комментарии: `// Комментарий с \ обратным слешем`, `/* Многострочный комментарий с \ слешем */`
+## Интерактивная разработка
 
-## Лексический анализатор
+### REPL
 
-Лексический анализатор реализован с использованием детерминированного конечного автомата (DFA). Он выполняет следующие функции:
+```bash
+# Запуск REPL
+lein repl
 
-1. Распознавание всех типов токенов C-подобного языка:
-   - Ключевые слова (`if`, `while`, `return`, и т.д.)
-   - Операторы (`+`, `-`, `*`, `/`, `==`, и т.д.)
-   - Разделители (скобки, запятые, точки с запятой)
-   - Идентификаторы
-   - Числовые литералы (десятичные и шестнадцатеричные)
-   - Строковые литералы
-   - Комментарии (однострочные и многострочные)
+# В REPL можно использовать:
+(test-ast "simple_arithmetic.c")
+(parse-file "control_flow.c")
+```
 
-2. Отслеживание позиции токенов в исходном коде (строка и колонка)
+## Примеры использования
 
-3. Обработка escape-символов в строках и комментариях
-
-## Пример использования API
+### Лексический анализ
 
 ```clojure
 (require '[compiler.lexer :as lexer])
@@ -63,23 +76,30 @@ lein test
 ;; Анализ кода
 (def tokens (lexer/lex "int main() { return 0; }"))
 
-;; Преобразование токенов для парсера
-(def parser-tokens (lexer/tokenize "int main() { return 0; }"))
-
-;; Печать информации о токенах
+;; Печать токенов
 (lexer/print-lexer-tokens "int x = 10; // комментарий")
 ```
 
-## Тестирование
+### AST Visualization
 
-Тесты охватывают все аспекты лексического анализатора:
-- Распознавание всех типов токенов
-- Корректная обработка строк и комментариев
-- Обработка escape-символов
-- Правильное отслеживание позиций
-- Обработка сложных и краевых случаев
+```clojure
+;; В REPL или через lein ast-test
+(test-ast "simple_arithmetic.c")
+```
 
-## License
+## Возможности
+
+- Лексический анализ с поддержкой escape-символов
+- Парсинг основных конструкций C
+- Визуализация Abstract Syntax Tree
+- Статический анализ кода
+
+## Требования
+
+- Clojure 1.11.1+
+- Leiningen 2.9.0+
+
+## Лицензия
 
 MIT License
 
@@ -102,3 +122,145 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+# C Compiler Project: AST Visualization and Testing
+
+## AST Visualization
+
+### Running AST Tests
+
+1. Open the REPL
+2. Load the `user` namespace
+3. Use the following functions:
+
+```clojure
+;; Test a specific file
+(test-ast "simple_arithmetic.c")
+(test-ast "control_flow.c")
+
+;; Parse a file and get the AST
+(def arithmetic-ast (parse-file "simple_arithmetic.c"))
+
+;; Print a specific AST
+(ast/print-ast arithmetic-ast)
+```
+
+### Adding New Test Files
+
+1. Place C source files in `test/resources/c_sources/`
+2. Use the `test-ast` or `parse-file` functions to test them
+
+## Example AST Visualization
+
+### Simple Arithmetic Example
+
+```c
+int main() {
+    int x = 10;
+    int y = 20;
+    int z = x + y * 2;
+    return z;
+}
+```
+
+This will generate an AST showing:
+- Main function declaration
+- Variable declarations
+- Binary operations
+- Return statement
+
+### Control Flow Example
+
+```c
+int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+```
+
+This will demonstrate:
+- Function declaration
+- Recursive function call
+- Conditional (if-else) structure
+- Comparison and multiplication operations
+
+## Troubleshooting
+
+- Ensure all dependencies are installed
+- Check that the parser can handle the specific C constructs in your test files
+- Use `*debug-mode*` in the parser for additional logging
+
+## Тестирование и демонстрация
+
+### Специализированные тесты
+
+```bash
+# Тесты лексического анализатора
+lein test-lexer
+
+# Тесты парсера
+lein test-parser
+
+# Тесты AST
+lein test-ast
+```
+
+### Демонстрационные команды
+
+```bash
+# Демонстрация лексического анализа
+lein demo-lexer
+
+# Демонстрация парсинга
+lein demo-parser
+
+# Демонстрация печати AST
+lein demo-ast-print
+```
+
+### Дополнительные инструменты
+
+```bash
+# Статический анализ кода
+lein lint
+
+# Генерация отчета о покрытии кода
+lein coverage
+```
+
+## Документация
+
+### Генерация документации
+
+```bash
+# Генерация документации с помощью Codox
+lein docs
+```
+
+#### Особенности документации
+- Автоматическая генерация из docstrings
+- Поддержка Markdown в комментариях
+- Привязка к исходному коду на GitHub
+- Покрытие основных неймспейсов:
+  - `compiler.lexer`
+  - `compiler.parser`
+  - `compiler.ast`
+
+### Просмотр документации
+
+1. После генерации откройте `docs/index.html`
+2. Документация содержит:
+   - Описание неймспейсов
+   - Документацию функций
+   - Примеры использования
+   - Ссылки на исходный код
+
+### Требования к документации
+
+- Использование docstrings с форматом Markdown
+- Описание параметров и возвращаемых значений
+- Примеры использования функций
+
