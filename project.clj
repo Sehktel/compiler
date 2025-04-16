@@ -27,17 +27,22 @@
           :project {:name "C-like Compiler"
                     :version "0.1.0"
                     :description "Educational project for building a C-like compiler in Clojure"}
-          :output-path "docs"
           :exclude-vars #"^(map|filter|reduce)$"}
   
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "1.3.0"]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "1.4.4"]
+                                  [midje "1.10.9"]
                                   [pjstadig/humane-test-output "0.11.0"]]
                    :plugins [[lein-cloverage "1.2.4"]
                              [lein-kibit "0.1.8"]
-                             [lein-test-refresh "0.25.0"]]
+                             [com.jakemccrary/lein-test-refresh "0.25.0"]
+                             [lein-midje "3.2.1"]]
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]}
-             :test {:resource-paths ["test/resources"]}}
+             :test {:resource-paths ["test/resources"]}
+             :test-8051 {:main test-8051
+                        :source-paths ["src" "test"]}
+             :uberjar {:aot :all
+                      :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}
   
   :aliases {"ast-test" ["run" "-m" "user/run-ast-tests"]
             "parse-file" ["run" "-m" "user/parse-file"]
@@ -48,6 +53,7 @@
             "test-lexer" ["test" "compiler.test-lexer"]
             "test-parser" ["test" "compiler.test-parser"]
             "test-ast" ["test" "compiler.test-ast"]
+            "test-8051" ["with-profile" "test-8051" "run"]
             
             ;; Демонстрационные команды
             "demo-lexer" ["run" "-m" "compiler.lexer/print-lexer-tokens"]

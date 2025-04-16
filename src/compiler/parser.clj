@@ -1,7 +1,9 @@
 (ns compiler.parser
   (:require [clojure.string :as str]
+            [compiler.lexer :refer [tokenize]]
             [compiler.ast :refer [->Num ->BinaryOp ->Parens ->Variable ->FunctionCall 
-                                 ->If ->While ->For ->Return ->UnaryOp ->Block]]))
+                                 ->If ->While ->For ->Return ->UnaryOp ->Block
+                                 ->SfrDeclaration ->SbitDeclaration ->InterruptFunction]]))
 
 ;; Флаг для включения/отключения режима отладки
 (def ^:dynamic *debug-mode* true)
@@ -13,6 +15,10 @@
 (declare parse-expr)
 (declare parse-statement)
 (declare parse)
+;; Добавляем новые объявления функций для 8051
+(declare parse-sfr-declaration)
+(declare parse-sbit-declaration)
+(declare parse-interrupt-function)
 
 ;; Функция для логирования отладочной информации
 (defn debug-log [& args]
@@ -288,42 +294,6 @@
        (debug-log "Ошибка при парсинге выражения. Токены не соответствуют ни одному паттерну.")
        nil))))
 
-;; =============================================
-;; Управляющие конструкции
-;; =============================================
-
-;; (defn parse-if
-;;   "Разбирает условный оператор if.
-   
-;;    ## Параметры
-;;    - `tokens` - последовательность токенов
-   
-;;    ## Возвращает
-;;    Вектор `[(->If условие then else) оставшиеся_токены]` или `nil`.
-   
-;;    ## Пример
-;;    ```clojure
-;;    (parse-if [[:if_keyword \"if\"] [:open_round_bracket \"(\"] 
-;;               [:identifier \"x\"] [:greater \">\"] [:number \"0\"] 
-;;               [:close_round_bracket \")\"] [:open_curly_bracket \"{\"] 
-;;               [:return_keyword \"return\"] [:number \"1\"] [:semicolon \";\"] 
-;;               [:close_curly_bracket \"}\"] [:else_keyword \"else\"] 
-;;               [:open_curly_bracket \"{\"] [:return_keyword \"return\"] 
-;;               [:number \"0\"] [:semicolon \";\"] [:close_curly_bracket \"}\"]])
-;;    ;; => [(->If (->BinaryOp \">\" (->Variable \"x\") (->Num 0))
-;;    ;;           (->Block [(->Return (->Num 1))])
-;;    ;;           (->Block [(->Return (->Num 0))]))
-;;    ;;      []]
-;;    ```"
-;;   [tokens]
-;;   (when-let [[_ remaining] (match-value :if_keyword "if" tokens)]
-;;     (when-let [[condition remaining] (parse-expr remaining)]
-;;       (when-let [[then remaining] (parse-statement remaining)]
-;;         (let [[else remaining] 
-;;               (when-let [[_ remaining] (match-value :else_keyword "else" remaining)]
-;;                 (parse-statement remaining))]
-;;           [(->If condition then else) remaining])))))
-
 (defn parse-while
   "Разбирает цикл while.
    
@@ -352,37 +322,6 @@
       (when-let [[body remaining] (parse-statement remaining)]
         [(->While condition body) remaining]))))
 
-;; (defn parse-for
-;;   "Разбирает цикл for.
-   
-;;    ## Параметры
-;;    - `tokens` - последовательность токенов
-   
-;;    ## Возвращает
-;;    Вектор `[(->For инициализация условие обновление тело) оставшиеся_токены]` или `nil`.
-   
-;;    ## Пример
-;;    ```clojure
-;;    (parse-for [[:for_keyword \"for\"] [:open_round_bracket \"(\"] 
-;;                [:identifier \"i\"] [:equal \"=\"] [:number \"0\"] [:semicolon \";\"] 
-;;                [:identifier \"i\"] [:less \"<\"] [:number \"10\"] [:semicolon \";\"] 
-;;                [:identifier \"i\"] [:equal \"=\"] [:identifier \"i\"] [:plus \"+\"] 
-;;                [:number \"1\"] [:close_round_bracket \")\"] [:open_curly_bracket \"{\"] 
-;;                [:close_curly_bracket \"}\"]])
-;;    ;; => [(->For (->BinaryOp \"=\" (->Variable \"i\") (->Num 0))
-;;    ;;            (->BinaryOp \"<\" (->Variable \"i\") (->Num 10))
-;;    ;;            (->BinaryOp \"=\" (->Variable \"i\") 
-;;    ;;                        (->BinaryOp \"+\" (->Variable \"i\") (->Num 1)))
-;;    ;;            (->Block []))
-;;    ;;      []]
-;;    ```"
-;;   [tokens]
-;;   (when-let [[_ remaining] (match-value :for_keyword "for" tokens)]
-;;     (when-let [[init remaining] (parse-expr remaining)]
-;;       (when-let [[condition remaining] (parse-expr remaining)]
-;;         (when-let [[update remaining] (parse-expr remaining)]
-;;           (when-let [[body remaining] (parse-statement remaining)]
-;;             [(->For init condition update body) remaining]))))))
 
 (defn parse-return
   "Разбирает оператор return.
@@ -470,35 +409,122 @@
                     [(->For init condition update body) remaining]))))))))))
 
 (defn parse-statement
-  "Разбирает любой оператор.
-   Порядок правил определяет приоритет разбора.
+  "Разбирает оператор или блок операторов.
    
    ## Параметры
    - `tokens` - последовательность токенов
    
    ## Возвращает
-   Результат первого успешного разбора из:
-   - условный оператор if
-   - цикл while
-   - цикл for
-   - оператор return
-   - блок кода
-   - выражение
+   Вектор `[оператор оставшиеся_токены]` или `nil` в случае ошибки."
+  [tokens]
+  (debug-log "Парсинг оператора. Токены:" tokens)
+  (or
+   ;; Сначала пробуем разобрать блок кода
+   (when-let [res (parse-block tokens)]
+     (debug-log "Успешный парсинг блока")
+     res)
+   
+   ;; Пробуем разобрать оператор if
+   (when-let [res (parse-if tokens)]
+     (debug-log "Успешный парсинг оператора if")
+     res)
+   
+   ;; Пробуем разобрать объявление SFR (8051)
+   (when-let [res (parse-sfr-declaration tokens)]
+     (debug-log "Успешный парсинг объявления SFR")
+     res)
+   
+   ;; Пробуем разобрать объявление SBIT (8051)
+   (when-let [res (parse-sbit-declaration tokens)]
+     (debug-log "Успешный парсинг объявления SBIT")
+     res)
+   
+   ;; Пробуем разобрать функцию с прерыванием (8051)
+   (when-let [res (parse-interrupt-function tokens)]
+     (debug-log "Успешный парсинг функции с прерыванием")
+     res)
+   
+   ;; Остальные случаи
+   (parse-while tokens)
+   (parse-for tokens)
+   (parse-return tokens)
+   (parse-expr tokens)))
+
+;; =============================================
+;; Специальные функции для микроконтроллера 8051
+;; =============================================
+
+(defn parse-sfr-declaration
+  "Разбирает объявление специального функционального регистра (SFR).
+   
+   ## Параметры
+   - `tokens` - последовательность токенов
+   
+   ## Возвращает
+   Вектор `[(->SfrDeclaration имя значение) оставшиеся_токены]` или `nil`
    
    ## Пример
-   ```clojure
-   (parse-statement [[:if_keyword \"if\"] [:open_round_bracket \"(\"] 
-                     [:number \"1\"] [:close_round_bracket \")\"] 
-                     [:open_curly_bracket \"{\"] [:close_curly_bracket \"}\"]])
-   ;; => [(->If (->Num 1) (->Block []) nil) []]
+   ```c
+   sfr SP = 0x81;
    ```"
   [tokens]
-  (or (parse-if tokens)
-      (parse-while tokens)
-      (parse-for tokens)
-      (parse-return tokens)
-      (parse-block tokens)
-      (parse-expr tokens)))
+  (debug-log "Парсинг объявления SFR. Токены:" tokens)
+  (when-let [[_ remaining] (match-type :sfr_keyword tokens)]
+    (when-let [[name remaining] (match-type :identifier remaining)]
+      (when-let [[_ remaining] (match-type :equal remaining)]
+        (when-let [[value remaining] (match-type :number remaining)]
+          (when-let [[_ remaining] (match-type :semicolon remaining)]
+            (debug-log "Успешный парсинг SFR:" name value)
+            [(->SfrDeclaration name value) remaining]))))))
+
+(defn parse-sbit-declaration
+  "Разбирает объявление специального бита (SBIT).
+   
+   ## Параметры
+   - `tokens` - последовательность токенов
+   
+   ## Возвращает
+   Вектор `[(->SbitDeclaration имя значение) оставшиеся_токены]` или `nil`
+   
+   ## Пример
+   ```c
+   sbit P1_0 = 0x90;
+   ```"
+  [tokens]
+  (debug-log "Парсинг объявления SBIT. Токены:" tokens)
+  (when-let [[_ remaining] (match-type :sbit_keyword tokens)]
+    (when-let [[name remaining] (match-type :identifier remaining)]
+      (when-let [[_ remaining] (match-type :equal remaining)]
+        (when-let [[value remaining] (match-type :number remaining)]
+          (when-let [[_ remaining] (match-type :semicolon remaining)]
+            (debug-log "Успешный парсинг SBIT:" name value)
+            [(->SbitDeclaration name value) remaining]))))))
+
+(defn parse-interrupt-function
+  "Разбирает объявление функции с атрибутом interrupt.
+   
+   ## Параметры
+   - `tokens` - последовательность токенов
+   
+   ## Возвращает
+   Вектор `[(->InterruptFunction return-type name params vector-id body) оставшиеся_токены]` или `nil`
+   
+   ## Пример
+   ```c
+   void P14 (void) interrupt IE0_VECTOR { ... }
+   ```"
+  [tokens]
+  (debug-log "Парсинг функции с прерыванием. Токены:" tokens)
+  (when-let [[return-type remaining] (match-type :void_keyword tokens)]
+    (when-let [[name remaining] (match-type :identifier remaining)]
+      (when-let [[_ remaining] (match-type :open_round_bracket remaining)]
+        (when-let [[_ remaining] (match-type :void_keyword remaining)]
+          (when-let [[_ remaining] (match-type :close_round_bracket remaining)]
+            (when-let [[_ remaining] (match-type :interrupt_keyword remaining)]
+              (when-let [[vector-id remaining] (match-type :identifier remaining)]
+                (when-let [[body-block remaining] (parse-statement remaining)]
+                  (debug-log "Успешный парсинг функции с прерыванием:" name vector-id)
+                  [(->InterruptFunction return-type name [] vector-id body-block) remaining])))))))))
 
 ;; =============================================
 ;; Основная функция парсинга
@@ -583,41 +609,33 @@
       nil)))
 
 (defn parse
-  "Основная функция парсинга. Анализирует входные данные и строит AST.
+  "Главная функция синтаксического анализа.
    
    ## Параметры
-   - `input` - входная строка кода на C
+   - `code` - исходный код программы или токены
    
    ## Возвращает
-   AST в виде вложенных структур данных или `nil` в случае ошибки."
-  [input]
-  (debug-log "Начало парсинга входной строки")
-  (try
-    (let [tokens (filterv 
-                   (fn [token] 
-                     (not (or 
-                            (= (first token) :comment)
-                            (= (first token) :whitespace)
-                            (= (first token) :comment_multiline))))
-                   (tokenize input))]
-      (debug-log "Токены после лексического анализа:" tokens)
-      (if (empty? tokens)
-        (do 
-          (debug-log "Ошибка: Пустой список токенов")
-          nil)
-        (let [[ast remaining] (parse-statement tokens)]
-          (debug-log "Парсинг выражения завершен. Оставшиеся токены:" remaining)
-          (if (or (empty? remaining) 
-                  (every? #(= (first %) :comment) remaining))
+   Абстрактное синтаксическое дерево (AST) программы или `nil` в случае ошибки."
+  [code]
+  (let [tokens (if (string? code) (tokenize code) code)]
+    (debug-log "Начало парсинга. Токены:" tokens)
+    (loop [remaining tokens
+           statements []]
+      (if (empty? remaining)
+        ;; Все токены обработаны, возвращаем результат
+        {:type :program
+         :body statements}
+        
+        ;; Пробуем разобрать следующий оператор
+        (let [result (or (parse-statement remaining)
+                        (parse-sfr-declaration remaining)  ;; Проверяем 8051-специфичные объявления
+                        (parse-sbit-declaration remaining)
+                        (parse-interrupt-function remaining))]
+          (if result
+            (let [[stmt new-remaining] result]
+              (recur new-remaining (conj statements stmt)))
+            ;; Ошибка синтаксиса
             (do
-              (debug-log "Парсинг успешно завершен")
-              ast)
-            (do
-              (debug-log "Ошибка: Остались необработанные токены:" remaining)
-              nil)))))
-    (catch Exception e
-      (debug-log "Исключение при парсинге:" (.getMessage e))
-      (debug-log "Стек вызовов:")
-      (.printStackTrace e)
-      nil)))
+              (debug-log "Ошибка синтаксиса. Токены:" remaining)
+              nil))))))
     

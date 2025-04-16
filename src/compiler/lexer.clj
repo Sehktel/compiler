@@ -45,6 +45,8 @@
    :return_keyword ["return"]
    :break_keyword ["break"]
    :continue_keyword ["continue"]
+   :sfr_keyword ["sfr"]
+   :sbit_keyword ["sbit"]
 
    :open_round_bracket ["("]
    :close_round_bracket [")"]
@@ -121,7 +123,9 @@
                             :do_keyword
                             :return_keyword
                             :break_keyword
-                            :continue_keyword]))))
+                            :continue_keyword
+                            :sfr_keyword
+                            :sbit_keyword]))))
 
 (defn operator?
   "Проверяет, является ли строка оператором языка C.
@@ -582,7 +586,8 @@
                    :const_keyword :volatile_keyword :typedef_keyword
                    :goto_keyword :if_keyword :else_keyword
                    :for_keyword :while_keyword :do_keyword
-                   :return_keyword :break_keyword :continue_keyword} type) 
+                   :return_keyword :break_keyword :continue_keyword
+                   :sfr_keyword :sbit_keyword} type) 
                 [:keyword value]
                 
                 (#{:plus :minus :asterisk :slash :percent
@@ -660,7 +665,8 @@
                                    :const_keyword :volatile_keyword :typedef_keyword
                                    :goto_keyword :if_keyword :else_keyword
                                    :for_keyword :while_keyword :do_keyword
-                                   :return_keyword :break_keyword :continue_keyword} type) 
+                                   :return_keyword :break_keyword :continue_keyword
+                                   :sfr_keyword :sbit_keyword} type) 
                                 :keyword
                                 
                                 (#{:plus :minus :asterisk :slash :percent

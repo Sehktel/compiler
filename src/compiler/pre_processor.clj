@@ -51,10 +51,83 @@
   (let [[_ filename] (re-find #"#include\s*[<\"]([^>\"]+)[>\"]" line)]
     (when filename
       (try
-        (slurp filename)
+        ;; Проверяем, есть ли файл в текущей директории
+        (let [file (java.io.File. filename)]
+          (if (.exists file)
+            (slurp file)
+            ;; Если файл не найден, проверяем предопределенные включаемые файлы для 8051
+            (case filename
+              "reg2051.h" (str "#ifndef __REG2051_H__\n"
+                              "#define __REG2051_H__\n\n"
+                              "/*------------------------------------------------\n"
+                              "Vectors\n"
+                              "------------------------------------------------*/\n"
+                              "#define IE0_VECTOR	0\n"
+                              "#define TF0_VECTOR	1\n"
+                              "#define IE1_VECTOR	2\n"
+                              "#define TF1_VECTOR	3\n"
+                              "#define SIO_VECTOR	4\n\n"
+                              "/*------------------------------------------------\n"
+                              "Byte Registers\n"
+                              "------------------------------------------------*/\n"
+                              "sfr P0   = 0x80;\n"
+                              "sfr SP   = 0x81;\n"
+                              "sfr DPL  = 0x82;\n"
+                              "sfr DPH  = 0x83;\n"
+                              "sfr PCON = 0x87;\n"
+                              "sfr TCON = 0x88;\n"
+                              "sfr TMOD = 0x89;\n"
+                              "sfr TL0  = 0x8A;\n"
+                              "sfr TL1  = 0x8B;\n"
+                              "sfr TH0  = 0x8C;\n"
+                              "sfr TH1  = 0x8D;\n"
+                              "sfr P1   = 0x90;\n"
+                              "sfr SCON = 0x98;\n"
+                              "sfr SBUF = 0x99;\n"
+                              "sfr P2   = 0xA0;\n"
+                              "sfr IE   = 0xA8;\n"
+                              "sfr P3   = 0xB0;\n"
+                              "sfr IP   = 0xB8;\n"
+                              "sfr PSW  = 0xD0;\n"
+                              "sfr ACC  = 0xE0;\n"
+                              "sfr B    = 0xF0;\n\n"
+                              "/*------------------------------------------------\n"
+                              "P1 Bit Registers\n"
+                              "------------------------------------------------*/\n"
+                              "sbit P1_0 = 0x90;\n"
+                              "sbit P1_1 = 0x91;\n"
+                              "sbit P1_2 = 0x92;\n"
+                              "sbit P1_3 = 0x93;\n"
+                              "sbit P1_4 = 0x94;\n"
+                              "sbit P1_5 = 0x95;\n"
+                              "sbit P1_6 = 0x96;\n"
+                              "sbit P1_7 = 0x97;\n\n"
+                              "/*------------------------------------------------\n"
+                              "TCON Bit Registers\n"
+                              "------------------------------------------------*/\n"
+                              "sbit IT0  = 0x88;\n"
+                              "sbit IE0  = 0x89;\n"
+                              "sbit IT1  = 0x8A;\n"
+                              "sbit IE1  = 0x8B;\n"
+                              "sbit TR0  = 0x8C;\n"
+                              "sbit TF0  = 0x8D;\n"
+                              "sbit TR1  = 0x8E;\n"
+                              "sbit TF1  = 0x8F;\n\n"
+                              "/*------------------------------------------------\n"
+                              "IE Bit Registers\n"
+                              "------------------------------------------------*/\n"
+                              "sbit EX0  = 0xA8;\n"
+                              "sbit ET0  = 0xA9;\n"
+                              "sbit EX1  = 0xAA;\n"
+                              "sbit ET1  = 0xAB;\n"
+                              "sbit ES   = 0xAC;\n"
+                              "sbit EA   = 0xAF;\n\n"
+                              "#endif\n")
+              ;; Если другие заголовочные файлы, можно добавить здесь
+              (str "/* Заглушка для файла " filename " */\n"))))
         (catch Exception e
           (println (str "Ошибка включения файла: " filename))
-          "")))))
+          (str "/* Ошибка включения файла: " filename " */\n"))))))
 
 ;; Функция для замены макросов в строке
 (defn replace-macros [line]
